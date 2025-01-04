@@ -10,6 +10,7 @@ import torch.nn.functional
 from collections import OrderedDict
 from .security import crypte, deserialized_layer
 
+
 def choice_device(device):
     """
     A function to choose the device
@@ -20,9 +21,13 @@ def choice_device(device):
         # on Windows, "cuda:0" if torch.cuda.is_available()
         device = "cuda:0"
 
-    elif torch.backends.mps.is_available() and torch.backends.mps.is_built() and device != "cpu":
+    elif (
+        torch.backends.mps.is_available()
+        and torch.backends.mps.is_built()
+        and device != "cpu"
+    ):
         """
-        on Mac : 
+        on Mac :
         - torch.backends.mps.is_available() ensures that the current MacOS version is at least 12.3+
         - torch.backends.mps.is_built() ensures that the current current PyTorch installation was built with MPS activated.
         """
@@ -33,6 +38,7 @@ def choice_device(device):
 
     return device
 
+
 def classes_string(name_dataset):
     """
     A function to get the classes of the dataset
@@ -41,16 +47,28 @@ def classes_string(name_dataset):
     :return: classes (the classes of the dataset) in a tuple
     """
     if name_dataset == "cifar":
-        classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+        classes = (
+            "plane",
+            "car",
+            "bird",
+            "cat",
+            "deer",
+            "dog",
+            "frog",
+            "horse",
+            "ship",
+            "truck",
+        )
 
     elif name_dataset == "MRI":
-        classes = ('glioma', 'meningioma', 'notumor', 'pituitary')
+        classes = ("glioma", "meningioma", "notumor", "pituitary")
 
     else:
         print("Warning problem : unspecified dataset")
         return ()
 
     return classes
+
 
 def supp_ds_store(path):
     """
@@ -62,6 +80,7 @@ def supp_ds_store(path):
         if i == ".DS_Store":
             print("Deleting of the hidden file '.DS_Store'")
             os.remove(path + "/" + i)
+
 
 def save_matrix(y_true, y_pred, path, classes):
     """
@@ -76,13 +95,17 @@ def save_matrix(y_true, y_pred, path, classes):
     y_true_mapped = [classes[label] for label in y_true]
     y_pred_mapped = [classes[label] for label in y_pred]
     # To get the normalized confusion matrix
-    cf_matrix_normalized = confusion_matrix(y_true_mapped, y_pred_mapped, labels=classes, normalize='all')
-   
+    cf_matrix_normalized = confusion_matrix(
+        y_true_mapped, y_pred_mapped, labels=classes, normalize="all"
+    )
+
     # To round up the values in the matrix
     cf_matrix_round = np.round(cf_matrix_normalized, 2)
 
     # To plot the matrix
-    df_cm = pd.DataFrame(cf_matrix_round, index=[i for i in classes], columns=[i for i in classes])
+    df_cm = pd.DataFrame(
+        cf_matrix_round, index=[i for i in classes], columns=[i for i in classes]
+    )
     plt.figure(figsize=(12, 7))
     sn.heatmap(df_cm, annot=True)
     plt.xlabel("Predicted label", fontsize=13)
@@ -91,6 +114,7 @@ def save_matrix(y_true, y_pred, path, classes):
 
     plt.savefig(path)
     plt.close()
+
 
 def save_roc(targets, y_proba, path, nbr_classes):
     """
@@ -101,7 +125,9 @@ def save_roc(targets, y_proba, path, nbr_classes):
     :param path: path to save the roc curve
     :param nbr_classes: number of classes
     """
-    y_true = np.zeros(shape=(len(targets), nbr_classes))  # array-like of shape (n_samples, n_classes)
+    y_true = np.zeros(
+        shape=(len(targets), nbr_classes)
+    )  # array-like of shape (n_samples, n_classes)
     for i in range(len(targets)):
         y_true[i, targets[i]] = 1
 
@@ -160,7 +186,7 @@ def save_roc(targets, y_proba, path, nbr_classes):
             label="ROC curve of class {0} (area = {1:0.2f})".format(i, roc_auc[i]),
         )
 
-    plt.plot([0, 1], [0, 1], "k--", lw=lw, label='Worst case')
+    plt.plot([0, 1], [0, 1], "k--", lw=lw, label="Worst case")
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel("False Positive Rate")
@@ -170,6 +196,7 @@ def save_roc(targets, y_proba, path, nbr_classes):
 
     plt.savefig(path)
     plt.close()
+
 
 def save_graphs(path_save, local_epoch, results, end_file=""):
     """
@@ -186,19 +213,27 @@ def save_graphs(path_save, local_epoch, results, end_file=""):
     plot_graph(
         [[*range(local_epoch)]] * 2,
         [results["train_acc"], results["val_acc"]],
-        "Epochs", "Accuracy (%)",
+        "Epochs",
+        "Accuracy (%)",
         curve_labels=["Training accuracy", "Validation accuracy"],
         title="Accuracy curves",
-        path=path_save + "Accuracy_curves" + end_file)
+        path=path_save + "Accuracy_curves" + end_file,
+    )
 
     plot_graph(
         [[*range(local_epoch)]] * 2,
         [results["train_loss"], results["val_loss"]],
-        "Epochs", "Loss",
-        curve_labels=["Training loss", "Validation loss"], title="Loss curves",
-        path=path_save + "Loss_curves" + end_file)
-    
-def plot_graph(list_xplot, list_yplot, x_label, y_label, curve_labels, title, path=None):
+        "Epochs",
+        "Loss",
+        curve_labels=["Training loss", "Validation loss"],
+        title="Loss curves",
+        path=path_save + "Loss_curves" + end_file,
+    )
+
+
+def plot_graph(
+    list_xplot, list_yplot, x_label, y_label, curve_labels, title, path=None
+):
     """
     Plot the graph of the list of points (list_xplot, list_yplot)
     :param list_xplot: list of list of points to plot (one line per curve)
@@ -225,6 +260,7 @@ def plot_graph(list_xplot, list_yplot, x_label, y_label, curve_labels, title, pa
     if path:
         plt.savefig(path)
 
+
 def get_parameters2(net, context_client=None) -> List[np.ndarray]:
     """
     Get the parameters of the network
@@ -235,11 +271,14 @@ def get_parameters2(net, context_client=None) -> List[np.ndarray]:
     if context_client:
         # Crypte of the model trained at the client for a given round (after each round the model is aggregated between
         # clients)
-        encrypted_tensor = crypte(net.state_dict(), context_client)  # list of encrypted layers (weights and biases)
+        encrypted_tensor = crypte(
+            net.state_dict(), context_client
+        )  # list of encrypted layers (weights and biases)
 
         return [layer.get_weight() for layer in encrypted_tensor]
 
     return [val.cpu().numpy() for _, val in net.state_dict().items()]
+
 
 def set_parameters(net, parameters: List[np.ndarray], context_client=None):
     """
