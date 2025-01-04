@@ -1,20 +1,22 @@
 """
 Contains functionality for creating PyTorch DataLoaders for image classification data.
 """
+
 import os
 
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 from torch import Generator
-from .common import supp_ds_store 
+from .common import supp_ds_store
 
 NUM_WORKERS = os.cpu_count()
 
 # Normalization values for the different datasets
-NORMALIZE_DICT = {    
-    'cifar': dict(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
-    'MRI': dict(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),    
-    }
+NORMALIZE_DICT = {
+    "cifar": dict(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
+    "MRI": dict(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+}
+
 
 def split_data_client(dataset, num_clients, seed):
     """
@@ -33,8 +35,17 @@ def split_data_client(dataset, num_clients, seed):
 
 # Define model, architecture and dataset
 # The DataLoaders downloads the training and test data that are then normalized.
-def load_datasets(num_clients: int, batch_size: int, resize: int, seed: int, num_workers: int, splitter=10,
-                  dataset="cifar", data_path="./data/", data_path_val=""):
+def load_datasets(
+    num_clients: int,
+    batch_size: int,
+    resize: int,
+    seed: int,
+    num_workers: int,
+    splitter=10,
+    dataset="cifar",
+    data_path="./data/",
+    data_path_val="",
+):
     """
     This function is used to load the dataset and split it into train and test for each client.
     :param num_clients: the number of clients
@@ -48,18 +59,23 @@ def load_datasets(num_clients: int, batch_size: int, resize: int, seed: int, num
     :param data_path_val: the absolute path of the validation data (if None, no validation data)
     :return: the train and test data loaders
     """
-    
-    list_transforms = [transforms.ToTensor(), transforms.Normalize(**NORMALIZE_DICT[dataset])]
+
+    list_transforms = [
+        transforms.ToTensor(),
+        transforms.Normalize(**NORMALIZE_DICT[dataset]),
+    ]
     print(dataset)
 
     if dataset == "cifar":
         # Download and transform CIFAR-10 (train and test)
-        transformer = transforms.Compose(
-            list_transforms
+        transformer = transforms.Compose(list_transforms)
+        trainset = datasets.CIFAR10(
+            data_path + dataset, train=True, download=True, transform=transformer
         )
-        trainset = datasets.CIFAR10(data_path + dataset, train=True, download=True, transform=transformer)
-        testset = datasets.CIFAR10(data_path + dataset, train=False, download=True, transform=transformer)
-       
+        testset = datasets.CIFAR10(
+            data_path + dataset, train=False, download=True, transform=transformer
+        )
+
     else:
         if resize is not None:
             list_transforms = [transforms.Resize((resize, resize))] + list_transforms
@@ -68,16 +84,20 @@ def load_datasets(num_clients: int, batch_size: int, resize: int, seed: int, num
         supp_ds_store(data_path + dataset)
         supp_ds_store(data_path + dataset + "/Training")
         supp_ds_store(data_path + dataset + "/Testing")
-        trainset = datasets.ImageFolder(data_path + dataset + "/Training", transform=transformer)
-        testset = datasets.ImageFolder(data_path + dataset + "/Testing", transform=transformer)
-    
-    print(f"The training set is created for the classes : {trainset.classes}")        
+        trainset = datasets.ImageFolder(
+            data_path + dataset + "/Training", transform=transformer
+        )
+        testset = datasets.ImageFolder(
+            data_path + dataset + "/Testing", transform=transformer
+        )
+
+    print(f"The training set is created for the classes : {trainset.classes}")
 
     # Split training set into `num_clients` partitions to simulate different local datasets
     datasets_train = split_data_client(trainset, num_clients, seed)
     if data_path_val:
         valset = datasets.ImageFolder(data_path_val, transform=transformer)
-        datasets_val = split_data_client(valset, num_clients, seed)    
+        datasets_val = split_data_client(valset, num_clients, seed)
 
     # Split each partition into train/val and create DataLoader
     trainloaders = []
@@ -85,14 +105,22 @@ def load_datasets(num_clients: int, batch_size: int, resize: int, seed: int, num
     for i in range(num_clients):
         if data_path_val:
             # if we already have a validation dataset
-            trainloaders.append(DataLoader(datasets_train[i], batch_size=batch_size, shuffle=True))
+            trainloaders.append(
+                DataLoader(datasets_train[i], batch_size=batch_size, shuffle=True)
+            )
             valloaders.append(DataLoader(datasets_val[i], batch_size=batch_size))
         else:
-            len_val = int(len(datasets_train[i]) * splitter / 100)  # splitter % validation set
+            len_val = int(
+                len(datasets_train[i]) * splitter / 100
+            )  # splitter % validation set
             len_train = len(datasets_train[i]) - len_val
             lengths = [len_train, len_val]
-            ds_train, ds_val = random_split(datasets_train[i], lengths, Generator().manual_seed(seed))
-            trainloaders.append(DataLoader(ds_train, batch_size=batch_size, shuffle=True))
+            ds_train, ds_val = random_split(
+                datasets_train[i], lengths, Generator().manual_seed(seed)
+            )
+            trainloaders.append(
+                DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+            )
             valloaders.append(DataLoader(ds_val, batch_size=batch_size))
 
     testloader = DataLoader(testset, batch_size=batch_size)

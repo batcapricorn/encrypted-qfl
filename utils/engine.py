@@ -1,6 +1,7 @@
 """
 Contains functions for training and testing a PyTorch model.
 """
+
 import torch
 import torch.nn as nn
 from tqdm.auto import tqdm
@@ -8,8 +9,12 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 
 
-def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn: Union[torch.nn.Module, Tuple],
-         device: torch.device):
+def test(
+    model: torch.nn.Module,
+    dataloader: torch.utils.data.DataLoader,
+    loss_fn: Union[torch.nn.Module, Tuple],
+    device: torch.device,
+):
     """Tests a PyTorch model for a single epoch.
 
     Turns a target PyTorch model to "eval" mode and then performs
@@ -40,7 +45,7 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     # Turn on inference context manager
     with torch.inference_mode():
         """
-        torch.inference_mode is analogous to torch.no_grad : 
+        torch.inference_mode is analogous to torch.no_grad :
         gets better performance by disabling view tracking and version counter bumps
         """
         # Loop through DataLoader batches
@@ -74,8 +79,13 @@ def test(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_f
     return test_loss, test_acc * 100, y_pred, y_true, y_proba
 
 
-def train_step(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn: Union[torch.nn.Module, Tuple],
-               optimizer: torch.optim.Optimizer, device: torch.device) -> Tuple[float, float]:
+def train_step(
+    model: torch.nn.Module,
+    dataloader: torch.utils.data.DataLoader,
+    loss_fn: Union[torch.nn.Module, Tuple],
+    optimizer: torch.optim.Optimizer,
+    device: torch.device,
+) -> Tuple[float, float]:
     """Trains a PyTorch model for a single epoch.
 
     Turns a target PyTorch model to training mode and then
@@ -125,7 +135,7 @@ def train_step(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, 
 
         # Calculate and accumulate accuracy metric across all batches
         y_pred_class = torch.argmax(torch.softmax(output, dim=1), dim=1)
-        train_acc += (y_pred_class == labels).sum().item()/len(output)
+        train_acc += (y_pred_class == labels).sum().item() / len(output)
 
     # Adjust metrics to get average loss and accuracy per batch
     train_loss = train_loss / len(dataloader)
@@ -133,9 +143,15 @@ def train_step(model: torch.nn.Module, dataloader: torch.utils.data.DataLoader, 
     return train_loss, train_acc * 100
 
 
-def train(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader,
-          test_dataloader: torch.utils.data.DataLoader, optimizer: torch.optim.Optimizer, loss_fn: Union[torch.nn.Module, Tuple],
-          epochs: int, device: torch.device) -> Dict[str, List]:
+def train(
+    model: torch.nn.Module,
+    train_dataloader: torch.utils.data.DataLoader,
+    test_dataloader: torch.utils.data.DataLoader,
+    optimizer: torch.optim.Optimizer,
+    loss_fn: Union[torch.nn.Module, Tuple],
+    epochs: int,
+    device: torch.device,
+) -> Dict[str, List]:
     """Trains and tests a PyTorch model.
 
     Passes a target PyTorch models through train_step() and test()
@@ -173,17 +189,24 @@ def train(model: torch.nn.Module, train_dataloader: torch.utils.data.DataLoader,
         test_fn = test
 
         # Perform training and validation
-        train_loss, train_acc = train_step_fn(model=model, dataloader=train_dataloader, loss_fn=loss_fn,
-                                            optimizer=optimizer, device=device)
-        val_loss, val_acc, *_ = test_fn(model=model, dataloader=test_dataloader, loss_fn=loss_fn, device=device)        
-            
+        train_loss, train_acc = train_step_fn(
+            model=model,
+            dataloader=train_dataloader,
+            loss_fn=loss_fn,
+            optimizer=optimizer,
+            device=device,
+        )
+        val_loss, val_acc, *_ = test_fn(
+            model=model, dataloader=test_dataloader, loss_fn=loss_fn, device=device
+        )
+
         # Print out what's happening
         print(
-        f"\tTrain Epoch: {epoch + 1} \t"
-        f"Train_loss: {train_loss:.4f} | "
-        f"Train_acc: {train_acc:.4f} % | "
-        f"Validation_loss: {val_loss:.4f} | "
-        f"Validation_acc: {val_acc:.4f} %"
+            f"\tTrain Epoch: {epoch + 1} \t"
+            f"Train_loss: {train_loss:.4f} | "
+            f"Train_acc: {train_acc:.4f} % | "
+            f"Validation_loss: {val_loss:.4f} | "
+            f"Validation_acc: {val_acc:.4f} %"
         )
 
         # Update results dictionary
