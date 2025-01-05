@@ -4,13 +4,8 @@ import tenseal as ts
 import numpy as np
 import torchvision
 import torch
-from torch import nn
 import flwr as fl
 from flwr.server import start_server
-
-from logging import WARNING
-import pennylane as qml
-
 from utils.common import choice_device, classes_string, get_parameters2
 from utils import security, data_setup
 from utils.fhe import (
