@@ -2,8 +2,7 @@
 
 from torch import nn
 import torch
-from pennylane import qml
-
+import pennylane as qml
 
 class SimpleNet(nn.Module):
     """
