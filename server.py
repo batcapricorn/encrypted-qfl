@@ -28,9 +28,8 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument(
     "--he",
-    type=bool,
-    help="if True, parameters will be encrypted using FHE",
-    default=False,
+    action="store_true",
+    help="if flag is set, parameters will be encrypted using FHE",
 )
 
 args = parser.parse_args()
