@@ -40,21 +40,21 @@ NUM_CLIENTS=$(yq '.number_clients' settings.yaml)
 
 # Set the model type and FHE flag
 MODEL_TYPE=$1
-HE=$2
+shift
+HE_FLAG=""
+
+if [[ "$1" == "--he" ]]; then
+    HE_FLAG="--he"
+fi
 
 # Validate input
-if [[ -z "$MODEL_TYPE" || -z "$HE" ]]; then
+if [[ -z "$MODEL_TYPE" ]]; then
     echo "Error: Missing arguments."
     show_help
     exit 1
 fi
 if [[ "$MODEL_TYPE" != "fednn" && "$MODEL_TYPE" != "fedqnn" ]]; then
     echo "Error: Invalid model type. Please use 'fednn' or 'fedqnn'."
-    show_help
-    exit 1
-fi
-if [[ "$HE" != "true" && "$HE" != "false" ]]; then
-    echo "Error: HE flag must be 'true' or 'false'."
     show_help
     exit 1
 fi
@@ -68,7 +68,7 @@ tshark_pid2=$!
 
 # Start the Flower server
 echo "Starting Flower server..."
-python server.py --he "$HE" &
+python server.py $HE_FLAG &
 SERVER_PID=$!
 echo "Server PID: $SERVER_PID"
 
@@ -81,7 +81,7 @@ sleep 5
 # Start Flower clients
 for ((i = 0; i < NUM_CLIENTS; i++)); do
     echo "Starting client $i with model $MODEL_TYPE..."
-    python client.py --client_index "$i" --he "$HE" --model "$MODEL_TYPE" &
+    python client.py --client_index "$i" --model "$MODEL_TYPE" $HE_FLAG &
     CLIENT_PIDS[$i]=$!
     echo "New Client PID: ${CLIENT_PIDS[$i]}"
     client_time_logs="timelogs/flwr_client${i}_PID${CLIENT_PIDS[$i]}.txt"
