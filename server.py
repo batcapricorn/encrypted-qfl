@@ -1,3 +1,4 @@
+import argparse
 import os
 import tenseal as ts
 import yaml
@@ -21,8 +22,18 @@ from utils.server import (
 )
 from utils.model import SimpleNet
 
-# Set up your variables directly
-he = True
+parser = argparse.ArgumentParser(
+    prog="FL server", description="Server that can be used for FL training"
+)
+
+parser.add_argument(
+    "--he",
+    type=bool,
+    help="if True, parameters will be encrypted using FHE",
+    default=False,
+)
+
+args = parser.parse_args()
 
 # Load settings
 with open("settings.yaml", "r") as file:
@@ -70,7 +81,7 @@ strategy = FedCustom(
     min_available_clients=config["min_avail_clients"],
     evaluate_metrics_aggregation_fn=weighted_average,
     initial_parameters=ndarrays_to_parameters_custom(get_parameters2(central)),
-    evaluate_fn=None if he else evaluate2_factory(central, testloader, DEVICE),
+    evaluate_fn=None if args.he else evaluate2_factory(central, testloader, DEVICE),
     on_fit_config_fn=get_on_fit_config_fn(
         epoch=config["max_epochs"], batch_size=config["batch_size"]
     ),
