@@ -23,3 +23,5 @@ path_public_key: "server_key.pkl"
 secret_path: "secret.pkl"  # private key of client
 public_path: "server_key.pkl"  # publc key of client
 path_crypted: "server.pkl"  # used to store encrypted checkpoints in aggreg_fit_checkpoint (as path_checkpoint)
+n_qubits: 4
+n_layers: 6

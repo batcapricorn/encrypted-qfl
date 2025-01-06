@@ -1,3 +1,4 @@
+import argparse
 import os
 import pickle
 import yaml
@@ -8,11 +9,34 @@ import tenseal as ts
 
 from utils.client import FlowerClient
 from utils import data_setup, security
-from utils.model import SimpleNet
+from utils.model import SimpleNet, simple_qnn_factory
 from utils.common import choice_device, classes_string
 
-client_id = 0
-he = True
+parser = argparse.ArgumentParser(
+    prog="FL client", description="Client server that can be used for FL training"
+)
+
+parser.add_argument(
+    "--client_index",
+    type=int,
+    help="index for client to load data partition",
+)
+parser.add_argument(
+    "--he",
+    type=bool,
+    help="if True, parameters will be encrypted using FHE",
+    default=False,
+)
+
+parser.add_argument(
+    "--model",
+    type=str,
+    choices=["fednn", "fedqnn"],
+    default="fednn",
+    help="Specify the model type: 'fednn' or 'fedqnn'.",
+)
+
+args = parser.parse_args()
 
 # Load settings
 with open("settings.yaml", "r") as file:
@@ -30,17 +54,22 @@ trainloaders, valloaders, testloader = data_setup.load_datasets(
     data_path_val=None,
 )  # Use the same path for validation data
 
-trainloader = trainloaders[client_id]
-valloader = valloaders[client_id]
+trainloader = trainloaders[args.client_index]
+valloader = valloaders[args.client_index]
 
 DEVICE = torch.device(choice_device(config["device"]))
 CLASSES = classes_string(config["dataset"])
 central = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
 
 context_client = None
-net = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
 
-if he:
+net = None
+if args.model == "fednn":
+    net = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
+elif args.model == "fedqnn":
+    net = simple_qnn_factory(config["n_qubits"], config["n_layers"])
+
+if args.he:
     print("Run with homomorphic encryption")
     if os.path.exists(config["secret_path"]):
         with open(config["secret_path"], "rb") as f:
@@ -62,7 +91,7 @@ if os.path.exists(config["model_save"]):
     checkpoint = torch.load(config["model_save"], map_location=DEVICE)[
         "model_state_dict"
     ]
-    if he:
+    if args.he:
         print("to decrypt model")
         server_query, server_context = security.read_query(config["secret_path"])
         server_context = ts.context_from(server_context)
@@ -76,7 +105,7 @@ if os.path.exists(config["model_save"]):
     net.load_state_dict(checkpoint)
 
 client = FlowerClient(
-    client_id,
+    args.client_index,
     net,
     trainloader,
     valloader,
@@ -86,7 +115,7 @@ client = FlowerClient(
     roc_export=config["roc_export"],
     save_results=config["save_results"],
     yaml_path=config["yaml_path"],
-    he=he,
+    he=args.he,
     context_client=context_client,
     classes=CLASSES,
 )
