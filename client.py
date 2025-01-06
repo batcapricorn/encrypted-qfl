@@ -1,5 +1,6 @@
 import os
 import pickle
+import yaml
 
 import flwr as fl
 import torch
@@ -11,53 +12,29 @@ from utils.model import SimpleNet
 from utils.common import choice_device, classes_string
 
 client_id = 0
-
-# Set up your variables directly
 he = True
-data_path = "data-tiny/"
-dataset = "MRI"
-yaml_path = "./results/FL/results.yml"
-seed = 0
-num_workers = 0
-max_epochs = 10
-batch_size = 10
-splitter = 10
-device = "gpu"
-number_clients = 1
-save_results = "results/FL/"
-matrix_export = True
-roc_export = True
-model_save = "MRI_FHE.pt"
-min_fit_clients = 1
-min_avail_clients = 1
-min_eval_clients = 1
-rounds = 3
-frac_fit = 1.0
-frac_eval = 0.5
-lr = 1e-3
-path_public_key = "server_key.pkl"
 
-secret_path = "secret.pkl"  # private key of client
-public_path = "server_key.pkl"  # publc key of client
-path_crypted = "server.pkl"  # used to store encrypted checkpoints in aggreg_fit_checkpoint (as path_checkpoint)
+# Load settings
+with open("settings.yaml", "r") as file:
+    config = yaml.safe_load(file)
 
 trainloaders, valloaders, testloader = data_setup.load_datasets(
-    num_clients=number_clients,
-    batch_size=batch_size,
+    num_clients=config["number_clients"],
+    batch_size=config["batch_size"],
     resize=224,
-    seed=seed,
-    num_workers=num_workers,
-    splitter=splitter,
-    dataset=dataset,  # Use the specified dataset
-    data_path=data_path,
+    seed=config["seed"],
+    num_workers=config["num_workers"],
+    splitter=config["splitter"],
+    dataset=config["dataset"],  # Use the specified dataset
+    data_path=config["data_path"],
     data_path_val=None,
 )  # Use the same path for validation data
 
 trainloader = trainloaders[client_id]
 valloader = valloaders[client_id]
 
-DEVICE = torch.device(choice_device(device))
-CLASSES = classes_string(dataset)
+DEVICE = torch.device(choice_device(config["device"]))
+CLASSES = classes_string(config["dataset"])
 central = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
 
 context_client = None
@@ -65,13 +42,13 @@ net = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
 
 if he:
     print("Run with homomorphic encryption")
-    if os.path.exists(secret_path):
-        with open(secret_path, "rb") as f:
+    if os.path.exists(config["secret_path"]):
+        with open(config["secret_path"], "rb") as f:
             query = pickle.load(f)
         context_client = ts.context_from(query["contexte"])
     else:
         context_client = security.context()
-        with open(secret_path, "wb") as f:
+        with open(config["secret_path"], "wb") as f:
             encode = pickle.dumps(
                 {"contexte": context_client.serialize(save_secret_key=True)}
             )
@@ -80,12 +57,14 @@ if he:
 else:
     print("Run WITHOUT homomorphic encryption")
 
-if os.path.exists(model_save):
+if os.path.exists(config["model_save"]):
     print(" To get the checkpoint")
-    checkpoint = torch.load(model_save, map_location=DEVICE)["model_state_dict"]
+    checkpoint = torch.load(config["model_save"], map_location=DEVICE)[
+        "model_state_dict"
+    ]
     if he:
         print("to decrypt model")
-        server_query, server_context = security.read_query(secret_path)
+        server_query, server_context = security.read_query(config["secret_path"])
         server_context = ts.context_from(server_context)
         for name in checkpoint:
             print(name)
@@ -102,11 +81,11 @@ client = FlowerClient(
     trainloader,
     valloader,
     device=DEVICE,
-    batch_size=batch_size,
-    matrix_export=matrix_export,
-    roc_export=roc_export,
-    save_results=save_results,
-    yaml_path=yaml_path,
+    batch_size=config["batch_size"],
+    matrix_export=config["matrix_export"],
+    roc_export=config["roc_export"],
+    save_results=config["save_results"],
+    yaml_path=config["yaml_path"],
     he=he,
     context_client=context_client,
     classes=CLASSES,
