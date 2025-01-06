@@ -1,9 +1,17 @@
 """Module that defines Flower Client"""
 
+import os
+
 import torch
 import flwr as fl
 
-from utils.common import save_graphs, get_parameters2, set_parameters
+from utils.common import (
+    save_graphs,
+    get_parameters2,
+    set_parameters,
+    save_roc,
+    save_matrix,
+)
 from utils import engine
 
 
@@ -17,8 +25,8 @@ class FlowerClient(fl.client.NumPyClient):
         device,
         batch_size,
         save_results,
-        matrix_path,
-        roc_path,
+        matrix_export,
+        roc_export,
         yaml_path,
         he,
         classes,
@@ -31,8 +39,8 @@ class FlowerClient(fl.client.NumPyClient):
         self.device = device
         self.batch_size = batch_size
         self.save_results = save_results
-        self.matrix_path = matrix_path
-        self.roc_path = roc_path
+        self.matrix_export = matrix_export
+        self.roc_export = roc_export
         self.yaml_path = yaml_path
         self.he = he
         self.classes = classes
@@ -80,11 +88,21 @@ class FlowerClient(fl.client.NumPyClient):
             device=self.device,
         )
 
-        # if self.save_results:
-        #    os.makedirs(self.save_results, exist_ok=True)
-        #    if self.matrix_path:
-        #        save_matrix(y_true, y_pred, self.save_results + self.matrix_path, self.classes)
-        #    if self.roc_path:
-        #        save_roc(y_true, y_proba, self.save_results + self.roc_path, len(self.classes))
+        if self.save_results:
+            os.makedirs(self.save_results, exist_ok=True)
+            if self.matrix_export:
+                save_matrix(
+                    y_true,
+                    y_pred,
+                    self.save_results + f"confusion_matrix_client{self.cid}",
+                    self.classes,
+                )
+            if self.roc_export:
+                save_roc(
+                    y_true,
+                    y_proba,
+                    self.save_results + f"roc_client{self.cid}",
+                    len(self.classes),
+                )
 
         return float(loss), len(self.valloader), {"accuracy": float(accuracy)}

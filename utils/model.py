@@ -4,6 +4,7 @@ from torch import nn
 import torch
 import pennylane as qml
 
+
 class SimpleNet(nn.Module):
     """
     A simple CNN model
