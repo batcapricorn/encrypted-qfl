@@ -4,6 +4,7 @@ import pickle
 import yaml
 
 import flwr as fl
+from flwr.common import Parameters, NDArrays
 import torch
 import tenseal as ts
 
@@ -11,6 +12,12 @@ from utils.client import FlowerClient
 from utils import data_setup, security
 from utils.model import SimpleNet, simple_qnn_factory
 from utils.common import choice_device, classes_string
+from utils.fhe import (
+    ndarrays_to_parameters,
+    ndarray_to_bytes,
+    bytes_to_ndarray,
+    parameters_to_ndarrays_custom,
+)
 
 parser = argparse.ArgumentParser(
     prog="FL client", description="Client server that can be used for FL training"
@@ -102,6 +109,20 @@ if os.path.exists(config["model_save"]):
                 ).decrypt(secret_key)
             )
     net.load_state_dict(checkpoint)
+
+
+def parameters_to_ndarrays(parameters: Parameters) -> NDArrays:
+    with open(config["secret_path"], "rb") as f:
+        query = pickle.load(f)
+
+    context_client = ts.context_from(query["contexte"])
+    return parameters_to_ndarrays_custom(parameters, context_client=context_client)
+
+
+fl.common.parameter.ndarrays_to_parameters = ndarrays_to_parameters
+fl.common.parameter.paramaters_to_ndarrays = parameters_to_ndarrays
+fl.common.parameter.ndarray_to_bytes = ndarray_to_bytes
+fl.common.parameter.bytes_to_ndarray = bytes_to_ndarray
 
 client = FlowerClient(
     args.client_index,
