@@ -13,6 +13,9 @@ from utils import security, data_setup
 from utils.fhe import (
     combo_keys,
     ndarrays_to_parameters_custom,
+    ndarrays_to_parameters,
+    ndarray_to_bytes,
+    bytes_to_ndarray,
 )
 from utils.server import (
     weighted_average,
@@ -44,6 +47,16 @@ if os.path.exists(config["secret_path"]):
 
 else:
     combo_keys(client_path=config["secret_path"], server_path=config["public_path"])
+
+
+def parameters_to_ndarrays():
+    raise
+
+
+fl.common.parameter.ndarrays_to_parameters = ndarrays_to_parameters
+fl.common.parameter.paramaters_to_ndarrays = parameters_to_ndarrays
+fl.common.parameter.ndarray_to_bytes = ndarray_to_bytes
+fl.common.parameter.bytes_to_ndarray = bytes_to_ndarray
 
 print("get public key : ", config["path_public_key"])
 _, server_context = security.read_query(config["path_public_key"])

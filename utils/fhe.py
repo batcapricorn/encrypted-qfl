@@ -19,7 +19,7 @@ def ndarray_to_bytes(ndarray: NDArray) -> bytes:
     return ndarray_to_bytes_custom(ndarray)
 
 
-def bytes_to_ndarray(tensor: bytes, context_client) -> NDArray:
+def bytes_to_ndarray(tensor: bytes) -> NDArray:
     bytes_io = BytesIO(tensor)
     ndarray_deserialized = np.load(bytes_io, allow_pickle=False)
     return cast(NDArray, ndarray_deserialized)
