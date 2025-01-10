@@ -35,8 +35,17 @@ from utils.fhe import (
 
 def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
     accuracies = [num_examples * m["accuracy"] for num_examples, m in metrics]
+    recalls = [num_examples * m["recall_score"] for num_examples, m in metrics]
+    precisions = [num_examples * m["precision_score"] for num_examples, m in metrics]
+    f1s = [num_examples * m["f1"] for num_examples, m in metrics]
     examples = [num_examples for num_examples, _ in metrics]
-    return {"accuracy": sum(accuracies) / sum(examples)}
+    metrics = {
+        "accuracy": sum(accuracies) / sum(examples),
+        "recalls": sum(accuracies) / sum(recalls),
+        "precisions": sum(accuracies) / sum(precisions),
+        "f1s": sum(accuracies) / sum(f1s),
+    }
+    return metrics
 
 
 def evaluate2_factory(central, testloader, device):

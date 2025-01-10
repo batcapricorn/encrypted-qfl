@@ -3,7 +3,14 @@ import torch
 from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, auc, confusion_matrix
+from sklearn.metrics import (
+    roc_curve,
+    auc,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 import seaborn as sn
 import pandas as pd
 import torch.nn.functional
@@ -302,3 +309,13 @@ def set_parameters(net, parameters: List[np.ndarray], context_client=None):
 
     net.load_state_dict(state_dict, strict=True)
     print("Updated model")
+
+
+def eval_classification(y_test, y_pred):
+    """Generate different kind of evaluation metrics for (multi) classification tasks"""
+    rec = recall_score(
+        y_test, y_pred, average="micro"
+    )  # average argument required for multi-class
+    prec = precision_score(y_test, y_pred, average="micro")
+    f1 = f1_score(y_test, y_pred, average="micro")
+    return rec, prec, f1
