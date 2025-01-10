@@ -8,6 +8,7 @@ import torchvision
 import torch
 import flwr as fl
 from flwr.server import start_server
+import wandb
 from utils.common import choice_device, classes_string, get_parameters2
 from utils import security, data_setup
 from utils.fhe import (
@@ -48,13 +49,20 @@ if os.path.exists(config["secret_path"]):
 else:
     combo_keys(client_path=config["secret_path"], server_path=config["public_path"])
 
-
-def parameters_to_ndarrays():
-    raise
-
+# Initialize wandb
+wandb.init(
+    project="qfl-playground",
+    config={
+        "fhe_enabled": args.he,
+        "learning_rate": config["lr"],
+        "batch_size": config["batch_size"],
+        "number_clients": config["number_clients"],
+        "dataset": config["dataset"],
+        "rounds": config["rounds"],
+    },
+)
 
 fl.common.parameter.ndarrays_to_parameters = ndarrays_to_parameters
-fl.common.parameter.paramaters_to_ndarrays = parameters_to_ndarrays
 fl.common.parameter.ndarray_to_bytes = ndarray_to_bytes
 fl.common.parameter.bytes_to_ndarray = bytes_to_ndarray
 
