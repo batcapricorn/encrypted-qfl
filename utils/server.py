@@ -21,6 +21,7 @@ from flwr.common import (
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.client_manager import ClientManager
 from flwr.server.strategy.aggregate import weighted_loss_avg
+import wandb
 
 from logging import WARNING
 
@@ -332,6 +333,7 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
             elif server_round == 1:
                 logger.log(WARNING, "No evaluate_metrics_aggregation_fn provided")
 
+            wandb.log({"loss_agg": loss_aggregated, "metrics_agg": metrics_aggregated})
             return loss_aggregated, metrics_aggregated
 
         def evaluate(
@@ -354,6 +356,7 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
                 return None
 
             loss, metrics = eval_res
+            wandb.log({"loss_central": loss, "metrics_central": metrics})
             return loss, metrics
 
     return FedCustom
