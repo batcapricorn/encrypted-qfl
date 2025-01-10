@@ -11,6 +11,7 @@ from utils.common import (
     set_parameters,
     save_roc,
     save_matrix,
+    eval_classification,
 )
 from utils import engine
 
@@ -88,6 +89,14 @@ class FlowerClient(fl.client.NumPyClient):
             device=self.device,
         )
 
+        rec, prec, f1 = eval_classification(y_true, y_pred)
+        metrics = {
+            "accuracy": float(accuracy),
+            "recall_score": rec,
+            "precision_score": prec,
+            "f1": f1,
+        }
+
         if self.save_results:
             os.makedirs(self.save_results, exist_ok=True)
             if self.matrix_export:
@@ -105,4 +114,4 @@ class FlowerClient(fl.client.NumPyClient):
                     len(self.classes),
                 )
 
-        return float(loss), len(self.valloader), {"accuracy": float(accuracy)}
+        return float(loss), len(self.valloader), metrics
