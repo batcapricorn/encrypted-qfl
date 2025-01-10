@@ -2,6 +2,7 @@
 
 from collections import OrderedDict
 from typing import List, Tuple, Dict, Optional, Callable, Union
+import time
 
 import numpy as np
 import torch
@@ -216,6 +217,7 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
                 """
                 fit_configurations.append((client, FitIns(parameters, config)))
             # Successful updates from the previously selected and configured clients
+            self.round_start_time = time.time()
             return fit_configurations
 
         def aggregate_fit(
@@ -225,6 +227,13 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
             failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
         ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
             """Aggregate fit results using weighted average. (each round)"""
+            # Calculate round time
+            round_end_time = time.time()
+            round_time = round_end_time - self.round_start_time
+
+            # Log round time to wandb
+            wandb.log({"round": server_round, "round_time": round_time})
+
             # Same function as FedAvg(Strategy)
             if not results:
                 return None, {}
