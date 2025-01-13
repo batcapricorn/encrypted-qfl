@@ -71,8 +71,6 @@ wandb.init(
     },
 )
 
-wandb.log({"some_metric": 99})
-
 trainloaders, valloaders, testloader = data_setup.load_datasets(
     num_clients=config["number_clients"],
     batch_size=config["batch_size"],
