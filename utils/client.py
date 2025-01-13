@@ -1,9 +1,11 @@
 """Module that defines Flower Client"""
 
 import os
+import time
 
 import torch
 import flwr as fl
+import wandb
 
 from utils.common import (
     save_graphs,
@@ -63,6 +65,7 @@ class FlowerClient(fl.client.NumPyClient):
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(self.net.parameters(), lr=lr)
 
+        start_time = time.time()
         results = engine.train(
             self.net,
             self.trainloader,
@@ -72,6 +75,8 @@ class FlowerClient(fl.client.NumPyClient):
             epochs=local_epochs,
             device=self.device,
         )
+        end_time = time.time() - start_time
+        wandb.log({"client_round_time": end_time})
 
         if self.save_results:
             save_graphs(self.save_results, local_epochs, results, f"_Client {self.cid}")
