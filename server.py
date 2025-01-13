@@ -27,7 +27,7 @@ from utils.server import (
     get_on_fit_config_fn,
     fed_custom_factory,
 )
-from utils.model import SimpleNet
+from utils.model import SimpleNet, simple_qnn_factory
 
 parser = argparse.ArgumentParser(
     prog="FL server", description="Server that can be used for FL training"
@@ -91,7 +91,13 @@ _, server_context = security.read_query(config["path_public_key"])
 server_context = ts.context_from(server_context)
 DEVICE = torch.device(choice_device(config["device"]))
 CLASSES = classes_string(config["dataset"])
-central = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
+central = None
+if args.model == "fednn":
+    central = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
+elif args.model == "fedqnn":
+    SimpleQNN = simple_qnn_factory(config["n_qubits"], config["n_layers"])
+    central = SimpleQNN(num_classes=len(CLASSES)).to(DEVICE)
+
 
 trainloaders, valloaders, testloader = data_setup.load_datasets(
     num_clients=config["number_clients"],

@@ -95,7 +95,8 @@ net = None
 if args.model == "fednn":
     net = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
 elif args.model == "fedqnn":
-    net = simple_qnn_factory(config["n_qubits"], config["n_layers"])
+    SimpleQNN = simple_qnn_factory(config["n_qubits"], config["n_layers"])
+    net = SimpleQNN(num_classes=len(CLASSES)).to(DEVICE)
 
 if args.he:
     print("Run with homomorphic encryption")
