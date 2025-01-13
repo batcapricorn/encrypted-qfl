@@ -69,7 +69,7 @@ with open("tmp.json", "w") as f:
     json.dump(wandb_config, f)
 
 wandb.init(
-    project="qfl-playground",
+    project=config["wandb_project"],
     config={
         "model": args.model,
         "fhe_enabled": args.he,

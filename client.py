@@ -58,7 +58,7 @@ run_group = wandb_config.get("WANDB_RUN_GROUP")
 print(f"Run group: {run_group}")
 
 wandb.init(
-    project="qfl-playground",
+    project=config["wandb_project"],
     config={
         "model": args.model,
         "fhe_enabled": args.he,
@@ -88,7 +88,6 @@ valloader = valloaders[args.client_index]
 
 DEVICE = torch.device(choice_device(config["device"]))
 CLASSES = classes_string(config["dataset"])
-central = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
 
 context_client = None
 

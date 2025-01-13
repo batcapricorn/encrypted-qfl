@@ -1,3 +1,4 @@
+wandb_project: qfl-playground
 data_path: "data-tiny/"
 dataset: "MRI"
 yaml_path: "./results/FL/results.yml"
