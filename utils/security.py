@@ -9,6 +9,8 @@ import tenseal as ts
 from flwr.common import NDArrays
 from functools import reduce
 
+import wandb
+
 
 # /////////////////////// Homomorphic Encryption \\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -292,6 +294,7 @@ def crypte(client_w, context_c):
     :param context_c: the context of the encryption
     :return: a list of Layer objects (crypted weights or not)
     """
+    start_time = time.time()
     encrypted = []
     for name_layer, weight_array in client_w.items():
         start_time = time.time()
@@ -303,6 +306,8 @@ def crypte(client_w, context_c):
 
         print(name_layer, (time.time() - start_time))
 
+    end_time = time.time() - start_time
+    wandb.log({"encryption_time": end_time})
     # return [CryptedLayer(name_layer, weight_array, context_c) for name_layer, weight_array in client_w.items()]
     return encrypted
 

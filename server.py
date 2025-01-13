@@ -2,6 +2,7 @@ import argparse
 import os
 import tenseal as ts
 import yaml
+import json
 
 import numpy as np
 import torchvision
@@ -50,6 +51,13 @@ else:
     combo_keys(client_path=config["secret_path"], server_path=config["public_path"])
 
 # Initialize wandb
+run_group = "experiment-" + wandb.util.generate_id()
+
+wandb_config = {"WANDB_RUN_GROUP": run_group}
+
+with open("tmp.json", "w") as f:
+    json.dump(wandb_config, f)
+
 wandb.init(
     project="qfl-playground",
     config={
@@ -59,6 +67,7 @@ wandb.init(
         "number_clients": config["number_clients"],
         "dataset": config["dataset"],
         "rounds": config["rounds"],
+        "group": run_group,
     },
 )
 
