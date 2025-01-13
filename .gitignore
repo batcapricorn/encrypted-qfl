@@ -6,3 +6,4 @@ results
 *.pt
 timelogs
 wandb
+tmp.json

@@ -2,11 +2,13 @@ import argparse
 import os
 import pickle
 import yaml
+import json
 
 import flwr as fl
 from flwr.common import Parameters, NDArrays
 import torch
 import tenseal as ts
+import wandb
 
 from utils.client import FlowerClient
 from utils import data_setup, security
@@ -47,6 +49,29 @@ args = parser.parse_args()
 # Load settings
 with open("settings.yaml", "r") as file:
     config = yaml.safe_load(file)
+
+# Initialize wandb
+with open("tmp.json", "r") as f:
+    wandb_config = json.load(f)
+
+run_group = wandb_config.get("WANDB_RUN_GROUP")
+print(f"Run group: {run_group}")
+
+wandb.init(
+    project="qfl-playground",
+    config={
+        "model": args.model,
+        "fhe_enabled": args.he,
+        "learning_rate": config["lr"],
+        "batch_size": config["batch_size"],
+        "number_clients": config["number_clients"],
+        "dataset": config["dataset"],
+        "rounds": config["rounds"],
+        "group": run_group,
+    },
+)
+
+wandb.log({"some_metric": 99})
 
 trainloaders, valloaders, testloader = data_setup.load_datasets(
     num_clients=config["number_clients"],

@@ -84,9 +84,14 @@ for ((i = 0; i < NUM_CLIENTS; i++)); do
     python client.py --client_index "$i" --model "$MODEL_TYPE" $HE_FLAG &
     CLIENT_PIDS[$i]=$!
     echo "New Client PID: ${CLIENT_PIDS[$i]}"
-    client_time_logs="timelogs/flwr_client${i}_PID${CLIENT_PIDS[$i]}.txt"
-    psrecord ${CLIENT_PIDS[$i]} --log $client_time_logs --interval 0.5 &
+
+    if [[ $i -eq 0 ]]; then
+        # Only run psrecord for the first client
+        client_time_logs="timelogs/flwr_client${i}_PID${CLIENT_PIDS[$i]}.txt"
+        psrecord ${CLIENT_PIDS[$i]} --log $client_time_logs --interval 0.5 &
+    fi
 done
+
 
 # Wait for processes to complete
 wait $SERVER_PID
