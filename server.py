@@ -3,6 +3,8 @@ import os
 import tenseal as ts
 import yaml
 import json
+import warnings
+import time
 
 import numpy as np
 import torchvision
@@ -37,6 +39,14 @@ parser.add_argument(
     help="if flag is set, parameters will be encrypted using FHE",
 )
 
+parser.add_argument(
+    "--model",
+    type=str,
+    choices=["fednn", "fedqnn"],
+    default="fednn",
+    help="Specify the model type: 'fednn' or 'fedqnn'.",
+)
+
 args = parser.parse_args()
 
 # Load settings
@@ -61,6 +71,7 @@ with open("tmp.json", "w") as f:
 wandb.init(
     project="qfl-playground",
     config={
+        "model": args.model,
         "fhe_enabled": args.he,
         "learning_rate": config["lr"],
         "batch_size": config["batch_size"],
@@ -117,19 +128,21 @@ strategy = FedCustom(
     context_client=server_context,
 )
 
-import warnings
+if __name__ == "__main__":
+    warnings.simplefilter("ignore")
 
-warnings.simplefilter("ignore")
+    print("flwr", fl.__version__)
+    print("numpy", np.__version__)
+    print("torch", torch.__version__)
+    print("torchvision", torchvision.__version__)
+    print(f"Training on {DEVICE}")
+    print("Starting flowerserver")
 
-print("flwr", fl.__version__)
-print("numpy", np.__version__)
-print("torch", torch.__version__)
-print("torchvision", torchvision.__version__)
-print(f"Training on {DEVICE}")
-print("Starting flowerserver")
-
-start_server(
-    server_address="0.0.0.0:8150",
-    strategy=strategy,
-    config=fl.server.ServerConfig(num_rounds=config["rounds"]),
-)
+    start_time = time.time()
+    start_server(
+        server_address="0.0.0.0:8150",
+        strategy=strategy,
+        config=fl.server.ServerConfig(num_rounds=config["rounds"]),
+    )
+    end_time = time.time() - start_time
+    wandb.log({"total_training_time": end_time})
