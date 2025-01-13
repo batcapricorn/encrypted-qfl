@@ -68,7 +68,7 @@ tshark_pid2=$!
 
 # Start the Flower server
 echo "Starting Flower server..."
-python server.py $HE_FLAG &
+python server.py --model "$MODEL_TYPE" $HE_FLAG &
 SERVER_PID=$!
 echo "Server PID: $SERVER_PID"
 

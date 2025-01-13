@@ -163,5 +163,6 @@ client = FlowerClient(
     classes=CLASSES,
 )
 
-print("Starting flowerclient")
-fl.client.start_numpy_client(server_address="127.0.0.1:8150", client=client)
+if __name__ == "__main__":
+    print("Starting flowerclient")
+    fl.client.start_numpy_client(server_address="127.0.0.1:8150", client=client)
