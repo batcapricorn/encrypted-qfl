@@ -19,7 +19,7 @@ show_help() {
 
 # Ensure yq is installed
 if ! command -v yq &> /dev/null; then
-    echo "Error: wireshark is not installed. Please install yq to continue."
+    echo "Error: yq is not installed. Please install yq to continue."
     exit 1
 fi
 
