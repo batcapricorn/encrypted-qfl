@@ -99,6 +99,10 @@ elif args.model == "fedqnn":
     central = SimpleQNN(num_classes=len(CLASSES)).to(DEVICE)
 
 
+# Log number of trainable parameters
+num_trainable_params = sum(p.numel() for p in central.parameters() if p.requires_grad)
+wandb.log({"trainable_parameters": num_trainable_params})
+
 trainloaders, valloaders, testloader = data_setup.load_datasets(
     num_clients=config["number_clients"],
     batch_size=config["batch_size"],
