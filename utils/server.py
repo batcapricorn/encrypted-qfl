@@ -270,6 +270,7 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
             if not self.accept_failures and failures:
                 return None, {}
 
+            aggregation_start_time = time.time()
             # Convert results parameters --> array matrix
             weights_results = [
                 (
@@ -285,6 +286,8 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
             parameters_aggregated = ndarrays_to_parameters_custom(
                 security.aggregate_custom(weights_results)
             )
+            aggregation_end_time = time.time() - aggregation_start_time
+            wandb.log({"parameter_aggregation_time": aggregation_end_time})
 
             metrics_aggregated = {}
             # Aggregate custom metrics if aggregation fn was provided
