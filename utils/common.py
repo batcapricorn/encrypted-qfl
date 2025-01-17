@@ -1,5 +1,6 @@
 import os
 import torch
+import time
 from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,6 +13,7 @@ from sklearn.metrics import (
     recall_score,
 )
 import seaborn as sn
+import wandb
 import pandas as pd
 import torch.nn.functional
 from collections import OrderedDict
@@ -296,12 +298,15 @@ def set_parameters(net, parameters: List[np.ndarray], context_client=None):
     """
     params_dict = zip(net.state_dict().keys(), parameters)
     if context_client:
+        start_time = time.time()
         secret_key = context_client.secret_key()
         dico = {k: deserialized_layer(k, v, context_client) for k, v in params_dict}
 
         state_dict = OrderedDict(
             {k: torch.Tensor(v.decrypt(secret_key)) for k, v in dico.items()}
         )
+        end_time = time.time() - start_time
+        wandb.log({"decryption_time": end_time})
 
     else:
         dico = {k: torch.Tensor(v) for k, v in params_dict}
