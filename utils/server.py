@@ -3,6 +3,7 @@
 from collections import OrderedDict
 from typing import List, Tuple, Dict, Optional, Callable, Union
 import time
+import pickle
 
 import numpy as np
 import torch
@@ -159,6 +160,9 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
             self.evaluate_metrics_aggregation_fn = evaluate_metrics_aggregation_fn
             self.context_client = context_client
 
+            self.bytes_sent = 0
+            self.bytes_received = 0
+
         def __repr__(self) -> str:
             # Same function as FedAvg(Strategy)
             return f"FedCustom (accept_failures={self.accept_failures})"
@@ -185,6 +189,16 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
             client_manager: ClientManager,
         ) -> List[Tuple[ClientProxy, FitIns]]:
             """Configure the next round of training."""
+            # Proxy Parameters byte size
+            serialized_params = pickle.dumps(parameters)
+            param_size = len(serialized_params)
+            self.bytes_sent += param_size
+
+            # Log sent data
+            wandb.log(
+                {"Bytes Sent (Round)": param_size, "Total Bytes Sent": self.bytes_sent}
+            )
+
             # Sample clients
             sample_size, min_num_clients = self.num_fit_clients(
                 client_manager.num_available()
@@ -233,6 +247,20 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
 
             # Log round time to wandb
             wandb.log({"round": server_round, "round_time": round_time})
+
+            # Calculate the size of received parameters from clients
+            round_received = sum(
+                len(pickle.dumps(fit_res.parameters)) for _, fit_res in results
+            )
+            self.bytes_received += round_received
+
+            # Log received data
+            wandb.log(
+                {
+                    "Bytes Received (Round)": round_received,
+                    "Total Bytes Received": self.bytes_received,
+                }
+            )
 
             # Same function as FedAvg(Strategy)
             if not results:

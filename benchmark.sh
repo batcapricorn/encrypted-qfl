@@ -23,12 +23,6 @@ if ! command -v yq &> /dev/null; then
     exit 1
 fi
 
-# Ensure tshark is installed
-if ! command -v tshark &> /dev/null; then
-    echo "Error: tshark is not installed. Please install tshark to continue."
-    exit 1
-fi
-
 # Check if help is requested
 if [[ "$1" == "--help" ]]; then
     show_help
@@ -59,19 +53,14 @@ if [[ "$MODEL_TYPE" != "fednn" && "$MODEL_TYPE" != "fedqnn" ]]; then
     exit 1
 fi
 
-# Set up wireshark
-mkdir -p timelogs
-tshark -q -z conv,tcp -f "tcp port 8150" -i any -B 30 > timelogs/tshark_output.txt &
-tshark_pid=$!
-tshark -i any -T fields -e frame.len -f "tcp port 8150" -B 30 > timelogs/tshark_packets.txt &
-tshark_pid2=$!
-
 # Start the Flower server
 echo "Starting Flower server..."
 python server.py --model "$MODEL_TYPE" $HE_FLAG &
 SERVER_PID=$!
 echo "Server PID: $SERVER_PID"
 
+# Set up psrecords
+mkdir -p timelogs
 server_time_logs="timelogs/flwr_server_PID${SERVER_PID}.txt"
 psrecord $SERVER_PID --log $server_time_logs --interval 0.5 &
 
@@ -98,8 +87,5 @@ wait $SERVER_PID
 for PID in "${CLIENT_PIDS[@]}"; do
     wait $PID
 done
-
-kill $tshark_pid
-kill $tshark_pid2
 
 echo "Training completed."
