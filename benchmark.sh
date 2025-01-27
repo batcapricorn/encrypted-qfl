@@ -17,12 +17,6 @@ show_help() {
     echo "  $0 fedqnn false  # Run with 'fedqnn' model and homomorphic encryption disabled."
 }
 
-# Ensure yq is installed
-if ! command -v yq &> /dev/null; then
-    echo "Error: yq is not installed. Please install yq to continue."
-    exit 1
-fi
-
 # Check if help is requested
 if [[ "$1" == "--help" ]]; then
     show_help
@@ -30,7 +24,7 @@ if [[ "$1" == "--help" ]]; then
 fi
 
 # Read the number of clients from settings.yaml
-NUM_CLIENTS=$(yq '.number_clients' settings.yaml)
+NUM_CLIENTS=$(grep 'number_clients:' settings.yaml | cut -d':' -f2 | xargs)
 
 # Set the model type and FHE flag
 MODEL_TYPE=$1
