@@ -5,6 +5,8 @@ import yaml
 import json
 import warnings
 import time
+import cProfile
+import pstats
 
 import numpy as np
 import torchvision
@@ -148,11 +150,21 @@ if __name__ == "__main__":
     print(f"Training on {DEVICE}")
     print("Starting flowerserver")
 
-    start_time = time.time()
-    start_server(
-        server_address="0.0.0.0:8150",
-        strategy=strategy,
-        config=fl.server.ServerConfig(num_rounds=config["rounds"]),
-    )
-    end_time = time.time() - start_time
-    wandb.log({"total_training_time": end_time})
+    with cProfile.Profile() as pr:
+        start_time = time.time()
+        start_server(
+            server_address="0.0.0.0:8150",
+            strategy=strategy,
+            config=fl.server.ServerConfig(num_rounds=config["rounds"]),
+        )
+        end_time = time.time() - start_time
+        wandb.log({"total_training_time": end_time})
+
+        save_results = os.path.join(os.path.normpath(config["save_results"]), run_group)
+        dump_file = os.path.join(save_results, f"cprofile_server.prof")
+
+        with open(dump_file, "w") as f:
+            ps = pstats.Stats(pr, stream=f)
+            ps.strip_dirs()
+            ps.sort_stats("cumtime")
+            ps.print_stats()

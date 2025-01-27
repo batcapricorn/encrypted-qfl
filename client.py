@@ -3,6 +3,8 @@ import os
 import pickle
 import yaml
 import json
+import cProfile
+import pstats
 
 import flwr as fl
 from flwr.common import Parameters, NDArrays
@@ -166,4 +168,14 @@ client = FlowerClient(
 
 if __name__ == "__main__":
     print("Starting flowerclient")
-    fl.client.start_numpy_client(server_address="127.0.0.1:8150", client=client)
+    with cProfile.Profile() as pr:
+        fl.client.start_numpy_client(server_address="127.0.0.1:8150", client=client)
+        dump_file = os.path.join(
+            save_results, f"cprofile_client{args.client_index}.prof"
+        )
+
+        with open(dump_file, "w") as f:
+            ps = pstats.Stats(pr, stream=f)
+            ps.strip_dirs()
+            ps.sort_stats("cumtime")
+            ps.print_stats()
