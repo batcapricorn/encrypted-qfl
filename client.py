@@ -70,6 +70,7 @@ wandb.init(
         "dataset": config["dataset"],
         "rounds": config["rounds"],
         "group": run_group,
+        "participant": f"client{args.client_index}",
     },
 )
 
