@@ -30,7 +30,6 @@ class FlowerClient(fl.client.NumPyClient):
         save_results,
         matrix_export,
         roc_export,
-        yaml_path,
         he,
         classes,
         context_client,
@@ -44,7 +43,6 @@ class FlowerClient(fl.client.NumPyClient):
         self.save_results = save_results
         self.matrix_export = matrix_export
         self.roc_export = roc_export
-        self.yaml_path = yaml_path
         self.he = he
         self.classes = classes
         self.context_client = context_client
@@ -108,14 +106,16 @@ class FlowerClient(fl.client.NumPyClient):
                 save_matrix(
                     y_true,
                     y_pred,
-                    self.save_results + f"confusion_matrix_client{self.cid}",
+                    os.path.join(
+                        self.save_results, f"confusion_matrix_client{self.cid}"
+                    ),
                     self.classes,
                 )
             if self.roc_export:
                 save_roc(
                     y_true,
                     y_proba,
-                    self.save_results + f"roc_client{self.cid}",
+                    os.path.join(self.save_results, f"roc_client{self.cid}"),
                     len(self.classes),
                 )
 

@@ -1,7 +1,6 @@
 wandb_project: qfl-playground
 data_path: "data-tiny/"
 dataset: "MRI"
-yaml_path: "./results/FL/results.yml"
 seed: 0
 num_workers: 0
 max_epochs: 10
@@ -9,7 +8,7 @@ batch_size: 10
 splitter: 10
 device: "gpu"
 number_clients: 1
-save_results: "results/FL/"
+save_results: "results/"
 matrix_export: True
 roc_export: True
 model_save: "MRI_FHE.pt"

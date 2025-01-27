@@ -65,7 +65,7 @@ server_time_logs="timelogs/flwr_server_PID${SERVER_PID}.txt"
 psrecord $SERVER_PID --log $server_time_logs --interval 0.5 &
 
 # Allow server to initialize
-sleep 5
+sleep 60
 
 # Start Flower clients
 for ((i = 0; i < NUM_CLIENTS; i++)); do
