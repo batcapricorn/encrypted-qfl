@@ -226,7 +226,7 @@ def save_graphs(path_save, local_epoch, results, end_file=""):
         "Accuracy (%)",
         curve_labels=["Training accuracy", "Validation accuracy"],
         title="Accuracy curves",
-        path=path_save + "Accuracy_curves" + end_file,
+        path=os.path.join(path_save, f"Accuracy_curves{end_file}"),
     )
 
     plot_graph(
@@ -236,7 +236,7 @@ def save_graphs(path_save, local_epoch, results, end_file=""):
         "Loss",
         curve_labels=["Training loss", "Validation loss"],
         title="Loss curves",
-        path=path_save + "Loss_curves" + end_file,
+        path=os.path.join(path_save, f"Loss_curves{end_file}"),
     )
 
 

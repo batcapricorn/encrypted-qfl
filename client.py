@@ -147,6 +147,8 @@ fl.common.parameter.paramaters_to_ndarrays = parameters_to_ndarrays
 fl.common.parameter.ndarray_to_bytes = ndarray_to_bytes
 fl.common.parameter.bytes_to_ndarray = bytes_to_ndarray
 
+save_results = os.path.join(os.path.normpath(config["save_results"]), run_group)
+
 client = FlowerClient(
     args.client_index,
     net,
@@ -156,8 +158,7 @@ client = FlowerClient(
     batch_size=config["batch_size"],
     matrix_export=config["matrix_export"],
     roc_export=config["roc_export"],
-    save_results=config["save_results"],
-    yaml_path=config["yaml_path"],
+    save_results=save_results,
     he=args.he,
     context_client=context_client,
     classes=CLASSES,
