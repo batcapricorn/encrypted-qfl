@@ -297,14 +297,13 @@ def crypte(client_w, context_c):
     start_time = time.time()
     encrypted = []
     for name_layer, weight_array in client_w.items():
-        start_time = time.time()
         if name_layer == "fc3.weight":
             encrypted.append(CryptedLayer(name_layer, weight_array, context_c))
 
         else:
             encrypted.append(Layer(name_layer, weight_array))
 
-        print(name_layer, (time.time() - start_time))
+        print(name_layer)
 
     end_time = time.time() - start_time
     wandb.log({"encryption_time": end_time})
