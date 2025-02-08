@@ -43,9 +43,9 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
     examples = [num_examples for num_examples, _ in metrics]
     metrics = {
         "accuracy": sum(accuracies) / sum(examples),
-        "recalls": sum(accuracies) / sum(recalls),
-        "precisions": sum(accuracies) / sum(precisions),
-        "f1s": sum(accuracies) / sum(f1s),
+        "recalls": sum(recalls) / sum(examples),
+        "precisions": sum(precisions) / sum(examples),
+        "f1s": sum(f1s) / sum(examples),
     }
     return metrics
 
