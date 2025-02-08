@@ -64,7 +64,7 @@ else:
 
 # Initialize wandb
 job_id = os.getenv("SLURM_JOB_ID", wandb.util.generate_id())
-run_group = f"{"FHE" if args.he else "Standard"}-{args.model}-{job_id}"
+run_group = f"{'FHE' if args.he else 'Standard'}-{args.model}-{job_id}"
 
 wandb_config = {"WANDB_RUN_GROUP": run_group}
 
