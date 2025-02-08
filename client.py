@@ -72,6 +72,7 @@ wandb.init(
         "group": run_group,
         "participant": f"client{args.client_index}",
     },
+    name=f"client{args.client_index}",
 )
 
 trainloaders, valloaders, testloader = data_setup.load_datasets(
