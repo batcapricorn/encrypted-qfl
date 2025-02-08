@@ -63,7 +63,8 @@ else:
     combo_keys(client_path=config["secret_path"], server_path=config["public_path"])
 
 # Initialize wandb
-run_group = "experiment-" + wandb.util.generate_id()
+job_id = os.getenv("SLURM_JOB_ID", wandb.util.generate_id())
+run_group = f"{"FHE" if args.he else "Standard"}-{args.model}-{job_id}"
 
 wandb_config = {"WANDB_RUN_GROUP": run_group}
 

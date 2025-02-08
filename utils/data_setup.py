@@ -9,8 +9,6 @@ from torch.utils.data import DataLoader, random_split
 from torch import Generator
 from .common import supp_ds_store
 
-NUM_WORKERS = os.cpu_count()
-
 # Normalization values for the different datasets
 NORMALIZE_DICT = {
     "cifar": dict(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
@@ -108,7 +106,11 @@ def load_datasets(
             trainloaders.append(
                 DataLoader(datasets_train[i], batch_size=batch_size, shuffle=True)
             )
-            valloaders.append(DataLoader(datasets_val[i], batch_size=batch_size))
+            valloaders.append(
+                DataLoader(
+                    datasets_val[i], batch_size=batch_size, num_workers=num_workers
+                )
+            )
         else:
             len_val = int(
                 len(datasets_train[i]) * splitter / 100
@@ -119,9 +121,16 @@ def load_datasets(
                 datasets_train[i], lengths, Generator().manual_seed(seed)
             )
             trainloaders.append(
-                DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+                DataLoader(
+                    ds_train,
+                    batch_size=batch_size,
+                    shuffle=False,
+                    num_workers=num_workers,
+                )
             )
-            valloaders.append(DataLoader(ds_val, batch_size=batch_size))
+            valloaders.append(
+                DataLoader(ds_val, batch_size=batch_size, num_workers=num_workers)
+            )
 
     testloader = DataLoader(testset, batch_size=batch_size)
     return trainloaders, valloaders, testloader
