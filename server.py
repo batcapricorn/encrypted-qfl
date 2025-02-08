@@ -171,3 +171,12 @@ if __name__ == "__main__":
             ps.strip_dirs()
             ps.sort_stats("cumtime")
             ps.print_stats()
+
+        wandb.save("settings.yaml")
+        wandb.save("slurm_job.sh")
+        wandb.save(f"results/{run_group}/cprofile_server.prof")
+        wandb.save(f"results/{run_group}/cprofile_client0.prof")
+        wandb.save(f"results/{run_group}/Accuracy_curves_Client 0.png")
+        wandb.save(f"results/{run_group}/confusion_matrix_client0.png")
+        wandb.save(f"results/{run_group}/Loss_curves_Client0.png")
+        wandb.save(f"results/{run_group}/roc_client0.png")
