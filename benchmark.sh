@@ -82,4 +82,7 @@ for PID in "${CLIENT_PIDS[@]}"; do
     wait $PID
 done
 
+# Push psrecord output to wandb
+python3 psrecord_to_wandb.py --output_files="flwr_server_PID${SERVER_PID}.txt;flwr_client0_PID${CLIENT_PIDS[0]}.txt"
+
 echo "Training completed."
