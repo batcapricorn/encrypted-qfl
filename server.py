@@ -84,6 +84,7 @@ wandb.init(
         "group": run_group,
         "participant": "server",
     },
+    name="server",
 )
 
 fl.common.parameter.ndarrays_to_parameters = ndarrays_to_parameters
