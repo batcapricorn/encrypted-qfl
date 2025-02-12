@@ -29,7 +29,7 @@ from utils.server import (
     get_on_fit_config_fn,
     fed_custom_factory,
 )
-from utils.model import SimpleNet, simple_qnn_factory
+from utils.model import SimpleNet, simple_qnn_factory, qcnn_factory
 
 parser = argparse.ArgumentParser(
     prog="FL server", description="Server that can be used for FL training"
@@ -44,9 +44,9 @@ parser.add_argument(
 parser.add_argument(
     "--model",
     type=str,
-    choices=["fednn", "fedqnn"],
+    choices=["fednn", "fedqnn", "qcnn"],
     default="fednn",
-    help="Specify the model type: 'fednn' or 'fedqnn'.",
+    help="Specify the model type: 'fednn', 'fedqnn' or 'qcnn'.",
 )
 
 args = parser.parse_args()
@@ -102,6 +102,9 @@ if args.model == "fednn":
 elif args.model == "fedqnn":
     SimpleQNN = simple_qnn_factory(config["n_qubits"], config["n_layers"])
     central = SimpleQNN(num_classes=len(CLASSES)).to(DEVICE)
+elif args.model == "qcnn":
+    QNN = qcnn_factory(config["n_qubits"], config["n_layers"])
+    central = QNN(num_classes=len(CLASSES)).to(DEVICE)
 
 
 # Log number of trainable parameters

@@ -14,7 +14,7 @@ import wandb
 
 from utils.client import FlowerClient
 from utils import data_setup, security
-from utils.model import SimpleNet, simple_qnn_factory
+from utils.model import SimpleNet, simple_qnn_factory, qcnn_factory
 from utils.common import choice_device, classes_string
 from utils.fhe import (
     ndarrays_to_parameters,
@@ -41,9 +41,9 @@ parser.add_argument(
 parser.add_argument(
     "--model",
     type=str,
-    choices=["fednn", "fedqnn"],
+    choices=["fednn", "fedqnn", "qcnn"],
     default="fednn",
-    help="Specify the model type: 'fednn' or 'fedqnn'.",
+    help="Specify the model type: 'fednn', 'fedqnn' or 'qcnn'.",
 )
 
 args = parser.parse_args()
@@ -101,6 +101,9 @@ if args.model == "fednn":
 elif args.model == "fedqnn":
     SimpleQNN = simple_qnn_factory(config["n_qubits"], config["n_layers"])
     net = SimpleQNN(num_classes=len(CLASSES)).to(DEVICE)
+elif args.model == "qcnn":
+    QNN = qcnn_factory(config["n_qubits"], config["n_layers"])
+    net = QNN(num_classes=len(CLASSES)).to(DEVICE)
 
 if args.he:
     print("Run with homomorphic encryption")
