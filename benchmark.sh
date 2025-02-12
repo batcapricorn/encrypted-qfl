@@ -41,8 +41,8 @@ if [[ -z "$MODEL_TYPE" ]]; then
     show_help
     exit 1
 fi
-if [[ "$MODEL_TYPE" != "fednn" && "$MODEL_TYPE" != "fedqnn" ]]; then
-    echo "Error: Invalid model type. Please use 'fednn' or 'fedqnn'."
+if [[ "$MODEL_TYPE" != "fednn" && "$MODEL_TYPE" != "fedqnn" && "$MODEL_TYPE" != "qcnn" ]]; then
+    echo "Error: Invalid model type. Please use 'fednn', 'fedqnn' or 'qcnn."
     show_help
     exit 1
 fi
