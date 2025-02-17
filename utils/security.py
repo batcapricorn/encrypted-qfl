@@ -306,7 +306,7 @@ def crypte(client_w, context_c):
         print(name_layer)
 
     end_time = time.time() - start_time
-    wandb.log({"encryption_time": end_time})
+    wandb.log({"encryption_time": end_time}, commit=False)
     # return [CryptedLayer(name_layer, weight_array, context_c) for name_layer, weight_array in client_w.items()]
     return encrypted
 

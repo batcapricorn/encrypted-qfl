@@ -48,6 +48,9 @@ parser.add_argument(
     default="fednn",
     help="Specify the model type: 'fednn', 'fedqnn' or 'qcnn'.",
 )
+parser.add_argument(
+    "--wandb_run_group", type=str, help="Run group for `wandb`", default=None
+)
 
 args = parser.parse_args()
 
@@ -63,13 +66,15 @@ else:
     combo_keys(client_path=config["secret_path"], server_path=config["public_path"])
 
 # Initialize wandb
-job_id = os.getenv("SLURM_JOB_ID", wandb.util.generate_id())
-run_group = f"{'FHE' if args.he else 'Standard'}-{args.model}-{job_id}"
+run_group = args.wandb_run_group
+if run_group is None:
+    job_id = os.getenv("SLURM_JOB_ID", wandb.util.generate_id())
+    run_group = f"{'FHE' if args.he else 'Standard'}-{args.model}-{job_id}"
 
-wandb_config = {"WANDB_RUN_GROUP": run_group}
+    wandb_config = {"WANDB_RUN_GROUP": run_group}
 
-with open("tmp.json", "w") as f:
-    json.dump(wandb_config, f)
+    with open("tmp.json", "w") as f:
+        json.dump(wandb_config, f)
 
 wandb.init(
     project=config["wandb_project"],
@@ -109,7 +114,7 @@ elif args.model == "qcnn":
 
 # Log number of trainable parameters
 num_trainable_params = sum(p.numel() for p in central.parameters() if p.requires_grad)
-wandb.log({"trainable_parameters": num_trainable_params})
+wandb.log({"trainable_parameters": num_trainable_params}, step=0)
 
 trainloaders, valloaders, testloader = data_setup.load_datasets(
     num_clients=config["number_clients"],
@@ -164,7 +169,8 @@ if __name__ == "__main__":
             config=fl.server.ServerConfig(num_rounds=config["rounds"]),
         )
         end_time = time.time() - start_time
-        wandb.log({"total_training_time": end_time})
+        step = config["rounds"] + 1
+        wandb.log({"total_training_time": end_time}, step=step)
 
         save_results = os.path.join(os.path.normpath(config["save_results"]), run_group)
         dump_file = os.path.join(save_results, f"cprofile_server.prof")

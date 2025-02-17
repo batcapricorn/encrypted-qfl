@@ -27,22 +27,28 @@ parser.add_argument(
 parser.add_argument(
     "--output_files",
     type=str,
-    help="List of output files seperated by semi-colon",
+    help="List of output files seperated by semi-colon. Expects 2 files in the format `server_file;client_file`.",
+)
+parser.add_argument(
+    "--wandb_run_group", type=str, help="Run group for `wandb`", default=None
 )
 args = parser.parse_args()
 
 output_files = args.output_files.split(";")
+server_file = output_files[0]
+client_file = output_files[1]
 
 # Load settings
 with open("settings.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 # Initialize wandb
-with open("tmp.json", "r") as f:
-    wandb_config = json.load(f)
+run_group = args.wandb_run_group
+if run_group is None:
+    with open("tmp.json", "r") as f:
+        wandb_config = json.load(f)
 
-run_group = wandb_config.get("WANDB_RUN_GROUP")
-print(f"Run group: {run_group}")
+    run_group = wandb_config.get("WANDB_RUN_GROUP")
 
 wandb.init(
     project=config["wandb_project"],
@@ -52,25 +58,46 @@ wandb.init(
     name="system_logs",
 )
 
-for file in output_files:
-    df = pd.read_csv(
-        os.path.join(args.output_dir, file),
-        sep=r"\s+",
-        skiprows=1,
-        names=[
-            "Elapsed Time (s)",
-            "CPU (%)",
-            "Real Memory (MB)",
-            "Virtual Memory (MB)",
-        ],
-    )
-    participant = "server" if "server" in file else "client"
-    for index, row in df.iterrows():
+df_server = pd.read_csv(
+    os.path.join(args.output_dir, server_file),
+    sep=r"\s+",
+    skiprows=1,
+    names=[
+        "Elapsed Time (s)",
+        "CPU (%)",
+        "Real Memory (MB)",
+        "Virtual Memory (MB)",
+    ],
+)
+df_client = pd.read_csv(
+    os.path.join(args.output_dir, client_file),
+    sep=r"\s+",
+    skiprows=1,
+    names=[
+        "Elapsed Time (s)",
+        "CPU (%)",
+        "Real Memory (MB)",
+        "Virtual Memory (MB)",
+    ],
+)
+
+df_server_row_count = len(df_server)
+df_client_row_count = len(df_client)
+for i in range(max(df_server_row_count, df_client_row_count)):
+    if i + 1 <= df_server_row_count:
         wandb.log(
             {
-                f"{participant}_cpu_percentage": row["CPU (%)"],
-                f"{participant}_real_memory_mb": row["Real Memory (MB)"],
-                f"{participant}_virtual_memory_mb": row["Virtual Memory (MB)"],
+                f"server_cpu_percentage": df_server.loc[i, "CPU (%)"],
+                f"server_real_memory_mb": df_server.loc[i, "Real Memory (MB)"],
+                f"server_virtual_memory_mb": df_server.loc[i, "Virtual Memory (MB)"],
             },
-            step=index,
+            step=i,
+        )
+    if i + 1 <= df_client_row_count:
+        wandb.log(
+            {
+                f"client_cpu_percentage": df_client.loc[i, "CPU (%)"],
+                f"client_real_memory_mb": df_client.loc[i, "Real Memory (MB)"],
+                f"client_virtual_memory_mb": df_client.loc[i, "Virtual Memory (MB)"],
+            }
         )

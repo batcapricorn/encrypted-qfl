@@ -45,6 +45,9 @@ parser.add_argument(
     default="fednn",
     help="Specify the model type: 'fednn', 'fedqnn' or 'qcnn'.",
 )
+parser.add_argument(
+    "--wandb_run_group", type=str, help="Run group for `wandb`", default=None
+)
 
 args = parser.parse_args()
 
@@ -53,11 +56,13 @@ with open("settings.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 # Initialize wandb
-with open("tmp.json", "r") as f:
-    wandb_config = json.load(f)
+run_group = args.wandb_run_group
+if run_group is None:
+    with open("tmp.json", "r") as f:
+        wandb_config = json.load(f)
 
-run_group = wandb_config.get("WANDB_RUN_GROUP")
-print(f"Run group: {run_group}")
+    run_group = wandb_config.get("WANDB_RUN_GROUP")
+    print(f"Run group: {run_group}")
 
 wandb.init(
     project=config["wandb_project"],

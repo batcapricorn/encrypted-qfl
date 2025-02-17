@@ -196,7 +196,8 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
 
             # Log sent data
             wandb.log(
-                {"Bytes Sent (Round)": param_size, "Total Bytes Sent": self.bytes_sent}
+                {"Bytes Sent (Round)": param_size, "Total Bytes Sent": self.bytes_sent},
+                step=server_round,
             )
 
             # Sample clients
@@ -246,7 +247,9 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
             round_time = round_end_time - self.round_start_time
 
             # Log round time to wandb
-            wandb.log({"round": server_round, "round_time": round_time})
+            wandb.log(
+                {"round": server_round, "round_time": round_time}, step=server_round
+            )
 
             # Calculate the size of received parameters from clients
             round_received = sum(
@@ -259,7 +262,8 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
                 {
                     "Bytes Received (Round)": round_received,
                     "Total Bytes Received": self.bytes_received,
-                }
+                },
+                step=server_round,
             )
 
             # Same function as FedAvg(Strategy)
@@ -287,7 +291,9 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
                 security.aggregate_custom(weights_results)
             )
             aggregation_end_time = time.time() - aggregation_start_time
-            wandb.log({"parameter_aggregation_time": aggregation_end_time})
+            wandb.log(
+                {"parameter_aggregation_time": aggregation_end_time}, step=server_round
+            )
 
             metrics_aggregated = {}
             # Aggregate custom metrics if aggregation fn was provided
@@ -382,7 +388,10 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
             elif server_round == 1:
                 logger.log(WARNING, "No evaluate_metrics_aggregation_fn provided")
 
-            wandb.log({"loss_agg": loss_aggregated, "metrics_agg": metrics_aggregated})
+            wandb.log(
+                {"loss_agg": loss_aggregated, "metrics_agg": metrics_aggregated},
+                step=server_round,
+            )
             return loss_aggregated, metrics_aggregated
 
         def evaluate(
@@ -405,7 +414,9 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
                 return None
 
             loss, metrics = eval_res
-            wandb.log({"loss_central": loss, "metrics_central": metrics})
+            wandb.log(
+                {"loss_central": loss, "metrics_central": metrics}, step=server_round
+            )
             return loss, metrics
 
     return FedCustom
