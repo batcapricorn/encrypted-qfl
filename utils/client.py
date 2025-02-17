@@ -74,7 +74,7 @@ class FlowerClient(fl.client.NumPyClient):
             device=self.device,
         )
         end_time = time.time() - start_time
-        wandb.log({"client_round_time": end_time})
+        wandb.log({"client_round_time": end_time}, step=server_round)
 
         if self.save_results:
             save_graphs(self.save_results, local_epochs, results, f"_Client {self.cid}")

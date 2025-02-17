@@ -306,7 +306,7 @@ def set_parameters(net, parameters: List[np.ndarray], context_client=None):
             {k: torch.Tensor(v.decrypt(secret_key)) for k, v in dico.items()}
         )
         end_time = time.time() - start_time
-        wandb.log({"decryption_time": end_time})
+        wandb.log({"decryption_time": end_time}, commit=False)
 
     else:
         dico = {k: torch.Tensor(v) for k, v in params_dict}

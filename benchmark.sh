@@ -5,7 +5,7 @@ show_help() {
     echo "Usage: $0 <model_type> <he_flag>"
     echo ""
     echo "Arguments:"
-    echo "  <model_type>   The model type to use. Must be one of: fednn, fedqnn."
+    echo "  <model_type>   The model type to use. Must be one of: fednn, fedqnn. fedqcnn."
     echo "  <he_flag>      Enable or disable homomorphic encryption. Must be one of: true, false."
     echo ""
     echo "Description:"
@@ -13,8 +13,8 @@ show_help() {
     echo "  The number of clients is specified in the settings.yaml file under 'number_clients'."
     echo ""
     echo "Examples:"
-    echo "  $0 fednn true    # Run with 'fednn' model and homomorphic encryption enabled."
-    echo "  $0 fedqnn false  # Run with 'fedqnn' model and homomorphic encryption disabled."
+    echo "  $0 fednn --he    # Run with 'fednn' model and homomorphic encryption enabled."
+    echo "  $0 fedqnn  # Run with 'fedqnn' model and homomorphic encryption disabled."
 }
 
 # Check if help is requested
@@ -46,6 +46,22 @@ if [[ "$MODEL_TYPE" != "fednn" && "$MODEL_TYPE" != "fedqnn" && "$MODEL_TYPE" != 
     show_help
     exit 1
 fi
+
+# Create run group name for `wandb`
+if [ -n "$SLURM_JOB_ID" ]; then
+    ID="$SLURM_JOB_ID"
+else
+    ID=$(uuidgen | cut -c1-8)
+fi
+
+HE_NAME="Standard"
+if [ "$HE_FLAG" == "--he" ]; then
+    HE_NAME="FHE"
+fi
+
+WANDB_RUN_GROUP="${HE_NAME}-${MODEL_TYPE}-$ID"
+export WANDB_RUN_GROUP
+echo "WANDB_RUN_GROUP set to: $WANDB_RUN_GROUP"
 
 # Start the Flower server
 echo "Starting Flower server..."
