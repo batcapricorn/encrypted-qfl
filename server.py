@@ -16,13 +16,7 @@ from flwr.server import start_server
 import wandb
 from utils.common import choice_device, classes_string, get_parameters2
 from utils import security, data_setup
-from utils.fhe import (
-    combo_keys,
-    ndarrays_to_parameters_custom,
-    ndarrays_to_parameters,
-    ndarray_to_bytes,
-    bytes_to_ndarray,
-)
+from utils.fhe import combo_keys, ndarrays_to_parameters_custom
 from utils.server import (
     weighted_average,
     evaluate2_factory,
@@ -30,6 +24,8 @@ from utils.server import (
     fed_custom_factory,
 )
 from utils.model import SimpleNet, simple_qnn_factory, qcnn_factory
+
+fl.common.GRPC_MAX_MESSAGE_LENGTH = 2000000000
 
 parser = argparse.ArgumentParser(
     prog="FL server", description="Server that can be used for FL training"
@@ -91,10 +87,6 @@ wandb.init(
     },
     name="server",
 )
-
-fl.common.parameter.ndarrays_to_parameters = ndarrays_to_parameters
-fl.common.parameter.ndarray_to_bytes = ndarray_to_bytes
-fl.common.parameter.bytes_to_ndarray = bytes_to_ndarray
 
 print("get public key : ", config["path_public_key"])
 _, server_context = security.read_query(config["path_public_key"])
@@ -167,12 +159,14 @@ if __name__ == "__main__":
             server_address="0.0.0.0:8150",
             strategy=strategy,
             config=fl.server.ServerConfig(num_rounds=config["rounds"]),
+            grpc_max_message_length=2000000000,
         )
         end_time = time.time() - start_time
         step = config["rounds"] + 1
         wandb.log({"total_training_time": end_time}, step=step)
 
         save_results = os.path.join(os.path.normpath(config["save_results"]), run_group)
+        os.makedirs(save_results, exist_ok=True)
         dump_file = os.path.join(save_results, f"cprofile_server.prof")
 
         with open(dump_file, "w") as f:

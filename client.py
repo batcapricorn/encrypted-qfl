@@ -12,16 +12,13 @@ import torch
 import tenseal as ts
 import wandb
 
-from utils.client import FlowerClient
+from utils.client import FlowerClient, start_numpy_client
 from utils import data_setup, security
 from utils.model import SimpleNet, simple_qnn_factory, qcnn_factory
 from utils.common import choice_device, classes_string
-from utils.fhe import (
-    ndarrays_to_parameters,
-    ndarray_to_bytes,
-    bytes_to_ndarray,
-    parameters_to_ndarrays_custom,
-)
+from utils.fhe import parameters_to_ndarrays_custom
+
+fl.common.GRPC_MAX_MESSAGE_LENGTH = 2000000000
 
 parser = argparse.ArgumentParser(
     prog="FL client", description="Client server that can be used for FL training"
@@ -154,11 +151,6 @@ def parameters_to_ndarrays(parameters: Parameters) -> NDArrays:
     return parameters_to_ndarrays_custom(parameters, context_client=context_client)
 
 
-fl.common.parameter.ndarrays_to_parameters = ndarrays_to_parameters
-fl.common.parameter.paramaters_to_ndarrays = parameters_to_ndarrays
-fl.common.parameter.ndarray_to_bytes = ndarray_to_bytes
-fl.common.parameter.bytes_to_ndarray = bytes_to_ndarray
-
 save_results = os.path.join(os.path.normpath(config["save_results"]), run_group)
 
 client = FlowerClient(
@@ -179,7 +171,11 @@ client = FlowerClient(
 if __name__ == "__main__":
     print("Starting flowerclient")
     with cProfile.Profile() as pr:
-        fl.client.start_numpy_client(server_address="127.0.0.1:8150", client=client)
+        start_numpy_client(
+            server_address="127.0.0.1:8150",
+            client=client,
+            grpc_max_message_length=2000000000,
+        )
         dump_file = os.path.join(
             save_results, f"cprofile_client{args.client_index}.prof"
         )
