@@ -2,12 +2,11 @@
 Contains functionality for creating PyTorch DataLoaders for image classification data.
 """
 
-import os
-
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 from torch import Generator
-from .common import supp_ds_store
+
+from utils.common import supp_ds_store
 
 # Normalization values for the different datasets
 NORMALIZE_DICT = {

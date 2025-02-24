@@ -8,7 +8,8 @@ from io import BytesIO
 import numpy as np
 import torch
 from flwr.common import Parameters, NDArray, NDArrays
-from utils import security
+
+from security import fhe
 
 
 def ndarrays_to_parameters(ndarrays: NDArrays) -> Parameters:
@@ -66,14 +67,14 @@ def combo_keys(client_path="secret.pkl", server_path="server_key.pkl"):
         client_path: path to save the secret key (str)
         server_path: path to save the server public key (str)
     """
-    context_client = security.context()
-    security.write_query(
+    context_client = fhe.context()
+    fhe.write_query(
         client_path, {"contexte": context_client.serialize(save_secret_key=True)}
     )
-    security.write_query(server_path, {"contexte": context_client.serialize()})
+    fhe.write_query(server_path, {"contexte": context_client.serialize()})
 
-    _, context_client = security.read_query(client_path)
-    _, context_server = security.read_query(server_path)
+    _, context_client = fhe.read_query(client_path)
+    _, context_server = fhe.read_query(server_path)
 
     context_client = ts.context_from(context_client)
     context_server = ts.context_from(context_server)
