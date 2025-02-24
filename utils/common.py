@@ -312,6 +312,9 @@ def set_parameters(net, parameters: List[np.ndarray], context_client=None):
         dico = {k: torch.Tensor(v) for k, v in params_dict}
         state_dict = OrderedDict(dico)
 
+    print(30 * "-")
+    print("CLIENT STATE DICT")
+    print(state_dict)
     net.load_state_dict(state_dict, strict=True)
     print("Updated model")
 
