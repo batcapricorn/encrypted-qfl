@@ -7,8 +7,9 @@
     pipenv install
     pipenv shell
     ```
-2. Adapt settings for training in `settings.py`
+2. Adapt settings for training in `settings.yaml`
 3. Run training examples using the scripts provided in `srcipts/` and a tiny dataset placed in `data-tiny/`: `./scripts/benchmark.sh fednn --he`
+4. On your first run you will be prompted to enter your [wandb](https://wandb.ai/) API key. All kinds of metrics are logged to `wandb`, e.g. encryption and decryption time, training time or network traffic (bytes).
 
 ## Cookbook 🍳
 
