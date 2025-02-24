@@ -27,9 +27,10 @@ import wandb
 
 from logging import WARNING
 
+from security import fhe
 from utils.common import set_parameters
-from utils import security, engine
-from utils.fhe import (
+from pytorch import engine
+from security.glue import (
     parameters_to_ndarrays_custom,
     ndarrays_to_parameters_custom,
 )
@@ -100,7 +101,7 @@ def aggreg_fit_checkpoint_factory(server_context):
                         server_response[key] = aggregated_ndarrays[i].serialize()
                     except:
                         server_response[key] = aggregated_ndarrays[i]
-                security.write_query(server_path, server_response)
+                fhe.write_query(server_path, server_response)
             else:
                 params_dict = zip(
                     central_model.state_dict().keys(), aggregated_ndarrays
@@ -288,7 +289,7 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
 
             # Aggregate parameters using weighted average between the clients and convert back to parameters object (bytes)
             parameters_aggregated = ndarrays_to_parameters_custom(
-                security.aggregate_custom(weights_results)
+                fhe.aggregate_custom(weights_results)
             )
             aggregation_end_time = time.time() - aggregation_start_time
             wandb.log(

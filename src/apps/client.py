@@ -41,11 +41,11 @@ from utils.common import (
     save_matrix,
     eval_classification,
 )
-from utils.fhe import (
+from security.glue import (
     ndarrays_to_parameters,
     parameters_to_ndarrays_custom,
 )
-from utils import engine
+from pytorch import engine
 
 
 EXCEPTION_MESSAGE_WRONG_RETURN_TYPE_FIT = """
@@ -262,19 +262,15 @@ def _wrap_numpy_client(client: NumPyClient) -> Client:
     # Add wrapper type methods (if overridden)
 
     if numpyclient_has_get_properties(client=client):
-        print(20 * "-" + "\nTRIGGER 1")
         member_dict["get_properties"] = _get_properties
 
     if numpyclient_has_get_parameters(client=client):
-        print(20 * "-" + "\nTRIGGER 2")
         member_dict["get_parameters"] = _get_parameters
 
     if numpyclient_has_fit(client=client):
-        print(20 * "-" + "\nTRIGGER 3")
         member_dict["fit"] = _fit
 
     if numpyclient_has_evaluate(client=client):
-        print(20 * "-" + "\nTRIGGER 4")
         member_dict["evaluate"] = _evaluate
 
     # Create wrapper class

@@ -12,11 +12,12 @@ import torch
 import tenseal as ts
 import wandb
 
-from utils.client import FlowerClient, start_numpy_client
-from utils import data_setup, security
-from utils.model import SimpleNet, simple_qnn_factory, qcnn_factory
+from security import fhe
+from apps.client import FlowerClient, start_numpy_client
+from utils import data_setup
+from pytorch.model import SimpleNet, simple_qnn_factory, qcnn_factory
 from utils.common import choice_device, classes_string
-from utils.fhe import parameters_to_ndarrays_custom
+from security.glue import parameters_to_ndarrays_custom
 
 fl.common.GRPC_MAX_MESSAGE_LENGTH = 2000000000
 
@@ -114,7 +115,7 @@ if args.he:
             query = pickle.load(f)
         context_client = ts.context_from(query["contexte"])
     else:
-        context_client = security.context()
+        context_client = fhe.context()
         with open(config["secret_path"], "wb") as f:
             encode = pickle.dumps(
                 {"contexte": context_client.serialize(save_secret_key=True)}
@@ -131,12 +132,12 @@ if os.path.exists(config["model_save"]):
     ]
     if args.he:
         print("to decrypt model")
-        server_query, server_context = security.read_query(config["secret_path"])
+        server_query, server_context = fhe.read_query(config["secret_path"])
         server_context = ts.context_from(server_context)
         for name in checkpoint:
             print(name)
             checkpoint[name] = torch.tensor(
-                security.deserialized_layer(
+                fhe.deserialized_layer(
                     name, server_query[name], server_context
                 ).decrypt(secret_key)
             )

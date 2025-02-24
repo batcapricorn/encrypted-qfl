@@ -15,15 +15,16 @@ import flwr as fl
 from flwr.server import start_server
 import wandb
 from utils.common import choice_device, classes_string, get_parameters2
-from utils import security, data_setup
-from utils.fhe import combo_keys, ndarrays_to_parameters_custom
-from utils.server import (
+from utils import data_setup
+from security.fhe import read_query
+from security.glue import combo_keys, ndarrays_to_parameters_custom
+from apps.server import (
     weighted_average,
     evaluate2_factory,
     get_on_fit_config_fn,
     fed_custom_factory,
 )
-from utils.model import SimpleNet, simple_qnn_factory, qcnn_factory
+from pytorch.model import SimpleNet, simple_qnn_factory, qcnn_factory
 
 fl.common.GRPC_MAX_MESSAGE_LENGTH = 2000000000
 
@@ -56,7 +57,7 @@ with open("settings.yaml", "r") as file:
 
 if os.path.exists(config["secret_path"]):
     print("it exists")
-    _, context_client = security.read_query(config["secret_path"])
+    _, context_client = read_query(config["secret_path"])
 
 else:
     combo_keys(client_path=config["secret_path"], server_path=config["public_path"])
@@ -89,7 +90,7 @@ wandb.init(
 )
 
 print("get public key : ", config["path_public_key"])
-_, server_context = security.read_query(config["path_public_key"])
+_, server_context = read_query(config["path_public_key"])
 server_context = ts.context_from(server_context)
 DEVICE = torch.device(choice_device(config["device"]))
 CLASSES = classes_string(config["dataset"])

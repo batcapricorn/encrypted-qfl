@@ -297,15 +297,13 @@ def crypte(client_w, context_c):
     start_time = time.time()
     encrypted = []
     for name_layer, weight_array in client_w.items():
-        print(f"Look at this sweet ass layer: {name_layer}")
+        print(f"Encrypting layer: {name_layer}")
         # encrypted.append(CryptedLayer(name_layer, weight_array, context_c))
         if name_layer == "classifier.2.weight":
             encrypted.append(CryptedLayer(name_layer, weight_array, context_c))
 
         else:
             encrypted.append(Layer(name_layer, weight_array))
-
-        print(name_layer)
 
     end_time = time.time() - start_time
     wandb.log({"encryption_time": end_time}, commit=False)

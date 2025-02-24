@@ -65,7 +65,7 @@ echo "WANDB_RUN_GROUP set to: $WANDB_RUN_GROUP"
 
 # Start the Flower server
 echo "Starting Flower server..."
-python server.py --model "$MODEL_TYPE" --wandb_run_group "$WANDB_RUN_GROUP" $HE_FLAG &
+python src/server.py --model "$MODEL_TYPE" --wandb_run_group "$WANDB_RUN_GROUP" $HE_FLAG &
 SERVER_PID=$!
 echo "Server PID: $SERVER_PID"
 
@@ -80,7 +80,7 @@ sleep 60
 # Start Flower clients
 for ((i = 0; i < NUM_CLIENTS; i++)); do
     echo "Starting client $i with model $MODEL_TYPE..."
-    python client.py --client_index "$i" --model "$MODEL_TYPE" --wandb_run_group "$WANDB_RUN_GROUP" $HE_FLAG &
+    python src/client.py --client_index "$i" --model "$MODEL_TYPE" --wandb_run_group "$WANDB_RUN_GROUP" $HE_FLAG &
     CLIENT_PIDS[$i]=$!
     echo "New Client PID: ${CLIENT_PIDS[$i]}"
 
@@ -99,6 +99,6 @@ for PID in "${CLIENT_PIDS[@]}"; do
 done
 
 # Push psrecord output to wandb
-python3 psrecord_to_wandb.py --output_files="flwr_server_PID${SERVER_PID}.txt;flwr_client0_PID${CLIENT_PIDS[0]}.txt" --wandb_run_group="$WANDB_RUN_GROUP"
+python3 src/scripts/psrecord_to_wandb.py --output_files="flwr_server_PID${SERVER_PID}.txt;flwr_client0_PID${CLIENT_PIDS[0]}.txt" --wandb_run_group="$WANDB_RUN_GROUP"
 
 echo "Training completed."
