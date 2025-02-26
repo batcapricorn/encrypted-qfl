@@ -296,12 +296,18 @@ def crypte(client_w, context_c):
     """
     start_time = time.time()
     encrypted = []
+    layers_to_encrypt = [
+        "classifier.2.weight"
+    ]  # List of layers to encrypt. If it contains "all", all layers will be encrypted
+    if "all" in layers_to_encrypt:
+        return [
+            CryptedLayer(name_layer, weight_array, context_c)
+            for name_layer, weight_array in client_w.items()
+        ]
     for name_layer, weight_array in client_w.items():
-        print(f"Encrypting layer: {name_layer}")
-        # encrypted.append(CryptedLayer(name_layer, weight_array, context_c))
-        if name_layer == "classifier.2.weight":
+        if name_layer in layers_to_encrypt:
+            print(f"Encrypting layer: {name_layer}")
             encrypted.append(CryptedLayer(name_layer, weight_array, context_c))
-
         else:
             encrypted.append(Layer(name_layer, weight_array))
 
