@@ -1,12 +1,11 @@
 #!/bin/bash
-#SBATCH --cpus-per-task=200
+#SBATCH --cpus-per-task=60
 #SBATCH --partition=clara
 #SBATCH --time=2-00:00:00
 #SBATCH --job-name=fl_simulation      # Job name
 #SBATCH --mem=200G                     # Total memory
 #SBATCH --output=fl_simulation_%j.out # Standard output
 #SBATCH --error=fl_simulation_%j.err  # Standard error
-#SBATCH --exclusive
 
 MODEL_TYPE=$1
 shift
