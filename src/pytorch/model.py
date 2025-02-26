@@ -88,11 +88,14 @@ def simple_qnn_factory(n_qubits, n_layers):
     return SimpleQNN
 
 
-def qcnn_factory(n_qubits, n_layers):
+def qcnn_factory():
+    """
+    Returns a QCNN class that reduces 8 input qubits to 4
+    """
     # Define quantum device with 16 qubits
-    n_qubits = 16  # Start with 16, reduce to 4
-    n_final_qubits = 4  # Number of qubits left after pooling
-    weight_shapes = {"weights": (42)}
+    n_qubits = 8
+    n_final_qubits = 4
+    weight_shapes = {"weights": (21)}
     dev = qml.device("default.qubit", wires=n_qubits)
 
     # Define cluster state preparation
@@ -171,14 +174,9 @@ def qcnn_factory(n_qubits, n_layers):
         quantum_conv_circuit(wires, weights[0:15])
         quantum_pool_circuit(
             wires[:8], wires[8:], weights[15:21]
-        )  # Reduce from 16 → 8 qubits
-
-        quantum_conv_circuit(wires[8:], weights[21:36])
-        quantum_pool_circuit(
-            wires[8:12], wires[12:], weights[36:42]
         )  # Reduce from 8 → 4 qubits
 
-        return [qml.expval(qml.PauliZ(i)) for i in wires[12:]]  # Measure 4 qubits
+        return [qml.expval(qml.PauliZ(i)) for i in wires[4:]]  # Measure 4 qubits
 
     # Define the modified SimpleQNN integrating QCNN
     class QCNN(nn.Module):

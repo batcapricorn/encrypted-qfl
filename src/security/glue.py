@@ -1,5 +1,4 @@
-"""Module to assure compatibility of Flower and TenSEAL
-"""
+"""Module to assure compatibility of Flower and TenSEAL"""
 
 from typing import cast
 import tenseal as ts

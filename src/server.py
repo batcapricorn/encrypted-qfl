@@ -101,7 +101,7 @@ elif args.model == "fedqnn":
     SimpleQNN = simple_qnn_factory(config["n_qubits"], config["n_layers"])
     central = SimpleQNN(num_classes=len(CLASSES)).to(DEVICE)
 elif args.model == "qcnn":
-    QNN = qcnn_factory(config["n_qubits"], config["n_layers"])
+    QNN = qcnn_factory()
     central = QNN(num_classes=len(CLASSES)).to(DEVICE)
 
 
