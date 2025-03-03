@@ -1,3 +1,5 @@
+[![Python Linting and Formatting](https://github.com/batcapricorn/qfl-playground/actions/workflows/qa.yml/badge.svg)](https://github.com/batcapricorn/qfl-playground/actions/workflows/qa.yml)
+
 # Integrating FHE into QFL
 **Thesis Title:** _Fully Homomorphic Encryption for Secure Parameter Sharing in Quantum Federated Learning: Challenges & Analysis_
 
