@@ -2,10 +2,8 @@
 
 import os
 import time
-from typing import Optional
+from typing import Optional, Dict, Callable
 
-import torch
-import wandb
 import flwr as fl
 from flwr.common import GRPC_MAX_MESSAGE_LENGTH
 from flwr.client.app import start_client
@@ -32,6 +30,8 @@ from flwr.common.typing import (
     NDArrays,
     Status,
 )
+import torch
+import wandb
 
 from utils.common import (
     save_graphs,
@@ -76,6 +76,10 @@ Example
 
 
 class FlowerClient(fl.client.NumPyClient):
+    """Flower NumpyClient that incorporates
+    FHE
+    """
+
     def __init__(
         self,
         cid,
@@ -289,6 +293,9 @@ def start_numpy_client(
     rest: bool = False,  # Deprecated in favor of `transport`
     transport: Optional[str] = None,
 ) -> None:
+    """Modified function to start numpy client that takes FHE
+    into account
+    """
     # Start
     start_client(
         server_address=server_address,

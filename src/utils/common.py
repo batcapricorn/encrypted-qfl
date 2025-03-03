@@ -1,9 +1,18 @@
+"""
+Helper functions for running FL experiment, e.g., functions to
+export ROC export
+"""
+
+from collections import OrderedDict
 import os
-import torch
 import time
 from typing import List
-import numpy as np
+
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sn
 from sklearn.metrics import (
     roc_curve,
     auc,
@@ -12,11 +21,10 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
-import seaborn as sn
-import wandb
-import pandas as pd
+
+import torch
 import torch.nn.functional
-from collections import OrderedDict
+import wandb
 
 from security.fhe import crypte, deserialized_layer
 
@@ -36,11 +44,11 @@ def choice_device(device):
         and torch.backends.mps.is_built()
         and device != "cpu"
     ):
-        """
-        on Mac :
-        - torch.backends.mps.is_available() ensures that the current MacOS version is at least 12.3+
-        - torch.backends.mps.is_built() ensures that the current current PyTorch installation was built with MPS activated.
-        """
+        # on Mac :
+        # - torch.backends.mps.is_available() ensures that the current
+        #   MacOS version is at least 12.3+
+        # - torch.backends.mps.is_built() ensures that the current current
+        #   PyTorch installation was built with MPS activated.
         device = "mps"
 
     else:
@@ -113,9 +121,7 @@ def save_matrix(y_true, y_pred, path, classes):
     cf_matrix_round = np.round(cf_matrix_normalized, 2)
 
     # To plot the matrix
-    df_cm = pd.DataFrame(
-        cf_matrix_round, index=[i for i in classes], columns=[i for i in classes]
-    )
+    df_cm = pd.DataFrame(cf_matrix_round, index=list(classes), columns=list(classes))
     plt.figure(figsize=(12, 7))
     sn.heatmap(df_cm, annot=True)
     plt.xlabel("Predicted label", fontsize=13)
@@ -142,9 +148,9 @@ def save_roc(targets, y_proba, path, nbr_classes):
         y_true[i, targets[i]] = 1
 
     # Compute ROC curve and ROC area for each class
-    fpr = dict()
-    tpr = dict()
-    roc_auc = dict()
+    fpr = {}
+    tpr = {}
+    roc_auc = {}
     for i in range(nbr_classes):
         fpr[i], tpr[i], _ = roc_curve(y_true[:, i], y_proba[:, i])
         roc_auc[i] = auc(fpr[i], tpr[i])
@@ -172,7 +178,7 @@ def save_roc(targets, y_proba, path, nbr_classes):
     plt.plot(
         fpr["micro"],
         tpr["micro"],
-        label="micro-average ROC curve (area = {0:0.2f})".format(roc_auc["micro"]),
+        label=f"micro-average ROC curve (area = {roc_auc['micro']:.2f})",
         color="deeppink",
         linestyle=":",
         linewidth=4,
@@ -181,7 +187,7 @@ def save_roc(targets, y_proba, path, nbr_classes):
     plt.plot(
         fpr["macro"],
         tpr["macro"],
-        label="macro-average ROC curve (area = {0:0.2f})".format(roc_auc["macro"]),
+        label=f"macro-average ROC curve (area = {roc_auc["macro"]:.2f})",
         color="navy",
         linestyle=":",
         linewidth=4,
@@ -193,7 +199,7 @@ def save_roc(targets, y_proba, path, nbr_classes):
             fpr[i],
             tpr[i],
             lw=lw,
-            label="ROC curve of class {0} (area = {1:0.2f})".format(i, roc_auc[i]),
+            label=f"ROC curve of class {i} (area = {roc_auc[i]:.2f})",
         )
 
     plt.plot([0, 1], [0, 1], "k--", lw=lw, label="Worst case")
@@ -279,8 +285,8 @@ def get_parameters2(net, context_client=None) -> List[np.ndarray]:
     :return: list of parameters (weights and biases) of the network
     """
     if context_client:
-        # Crypte of the model trained at the client for a given round (after each round the model is aggregated between
-        # clients)
+        # Crypte of the model trained at the client for a given round
+        # (after each round the model is aggregated between clients)
         encrypted_tensor = crypte(
             net.state_dict(), context_client
         )  # list of encrypted layers (weights and biases)
