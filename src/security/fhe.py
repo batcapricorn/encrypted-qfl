@@ -1,18 +1,15 @@
-from typing import List, Tuple
-import numpy as np
-import time
-import os
+"""Core module for implementing FHE"""
 
-# For the homomorphic encryption
-import pickle
-import tenseal as ts
-from flwr.common import NDArrays
 from functools import reduce
+import os
+import pickle
+import time
+from typing import List, Tuple
 
+from flwr.common import NDArrays
+import numpy as np
+import tenseal as ts
 import wandb
-
-
-# /////////////////////// Homomorphic Encryption \\\\\\\\\\\\\\\\\\\\\\\\\\
 
 
 def context():
@@ -25,7 +22,8 @@ def context():
     cont = ts.context(
         ts.SCHEME_TYPE.CKKS,
         poly_modulus_degree=8192,
-        # This means that the coefficient modulus will contain 4 primes of 60 bits, 40 bits, 40 bits, and 60 bits.
+        # This means that the coefficient modulus will contain
+        # 4 primes of 60 bits, 40 bits, 40 bits, and 60 bits.
         coeff_mod_bit_sizes=[60, 40, 40, 60],
     )
 
@@ -66,7 +64,7 @@ class Layer:
 
         :param other: the other layer object
         """
-        weights = other.get_weight() if type(other) == Layer else other
+        weights = other.get_weight() if isinstance(other, Layer) else other
         return Layer(self.name, self.weight_array + weights)
 
     def __sub__(self, other):
@@ -77,7 +75,7 @@ class Layer:
 
         :return: the substraction result in the form of a layer object
         """
-        weights = other.get_weight() if type(other) == Layer else other
+        weights = other.get_weight() if isinstance(other, Layer) else other
         return Layer(self.name, self.weight_array - weights)
 
     def __mul__(self, other):
@@ -88,19 +86,20 @@ class Layer:
 
         :return: the multiplication result in the form of a layer object
         """
-        weights = other.get_weight() if type(other) == Layer else other
+        weights = other.get_weight() if isinstance(other, Layer) else other
         return Layer(self.name, self.weight_array * weights)
 
     def __truediv__(self, other):
         """
         This function is used to divide the weights of two layers.
-        It works only if the weights of the other layer are a number or a layer object (weights with the same shape).
+        It works only if the weights of the other layer are a number
+        or a layer object (weights with the same shape).
 
         :param other: the other layer object
 
         :return: the division result in the form of a layer object
         """
-        weights = other.get_weight() if type(other) == Layer else other
+        weights = other.get_weight() if isinstance(other, Layer) else other
         weights = self.weight_array * (1 / weights)
         return Layer(self.name, weights)
 
@@ -172,8 +171,8 @@ class CryptedLayer(Layer):
     """
 
     def __init__(self, name_layer, weight, contexte=None):
-        super(CryptedLayer, self).__init__(name_layer, weight)
-        if type(weight) == ts.tensors.CKKSTensor or type(weight) == bytes:
+        super().__init__(name_layer, weight)
+        if isinstance(weight, (ts.tensors.CKKSTensor, bytes)):
             # If the weights are already encrypted or if they are bytes (serialized weights)
             self.weight_array = weight
 
@@ -189,7 +188,7 @@ class CryptedLayer(Layer):
 
         :return: the addition result in the form of a crypted layer object
         """
-        weights = other.get_weight() if type(other) == CryptedLayer else other
+        weights = other.get_weight() if isinstance(other, CryptedLayer) else other
         return CryptedLayer(self.name, self.weight_array + weights)
 
     def __sub__(self, other):
@@ -200,7 +199,7 @@ class CryptedLayer(Layer):
 
         :return: the substraction result in the form of a crypted layer object
         """
-        weights = other.get_weight() if type(other) == CryptedLayer else other
+        weights = other.get_weight() if isinstance(other, CryptedLayer) else other
         return CryptedLayer(self.name, self.weight_array - weights)
 
     def __mul__(self, other):
@@ -211,7 +210,7 @@ class CryptedLayer(Layer):
 
         :return: the multiplication result in the form of a crypted layer object
         """
-        weights = other.get_weight() if type(other) == CryptedLayer else other
+        weights = other.get_weight() if isinstance(other, CryptedLayer) else other
         return CryptedLayer(self.name, self.weight_array * weights)
 
     def __truediv__(self, other):
@@ -223,9 +222,10 @@ class CryptedLayer(Layer):
         :return: the division result in the form of a crypted layer object
         """
         try:
-            # We try to divide the weights of the layer by the weights of the other layer or by a number
-            # It is possible only if the denominator is a number or a tensor of non-crypted weights
-            weights = other.get_weight() if type(other) == CryptedLayer else other
+            # We try to divide the weights of the layer by the weights of
+            # the other layer or by a number. It is possible only if the
+            # denominator is a number or a tensor of non-crypted weights
+            weights = other.get_weight() if isinstance(other, CryptedLayer) else other
             weights = self.weight_array * (1 / weights)
 
         except:
@@ -325,20 +325,18 @@ def read_query(file_path):
     """
     if os.path.exists(file_path):
         with open(file_path, "rb") as file:
-            """
             # pickle.load(f)  # load to read file object
 
-            file_str = f.read()
-            client_query1 = pickle.loads(file_str)  # loads to read str class
-            """
+            # file_str = f.read()
+            # client_query1 = pickle.loads(file_str)  # loads to read str class
             query_str = pickle.load(file)
 
         contexte = query_str["contexte"]  # ts.context_from(query["contexte"])
         del query_str["contexte"]
         return query_str, contexte
 
-    else:
-        print("The file doesn't exist")
+    print("The file doesn't exist")
+    return None, None
 
 
 def write_query(file_path, client_query):
@@ -364,14 +362,13 @@ def deserialized_layer(name_layer, weight_array, ctx):
     :param ctx: the context (if the layer is crypted)
     :return: the object Layer or CryptedLayer with the weights of the layer in the correct format
     """
-    if type(weight_array) == bytes:
+    if isinstance(weight_array, bytes):
         return CryptedLayer(name_layer, ts.ckks_tensor_from(ctx, weight_array), ctx)
 
-    elif type(weight_array) == ts.tensors.CKKSTensor:
+    if isinstance(weight_array, ts.tensors.CKKSTensor):
         return CryptedLayer(name_layer, weight_array, ctx)
 
-    else:
-        return Layer(name_layer, weight_array)
+    return Layer(name_layer, weight_array)
 
 
 def deserialized_model(client_query, ctx):
@@ -392,9 +389,11 @@ def deserialized_model(client_query, ctx):
 # Redefine the aggregate function (defined in Flower)
 def aggregate_custom(results: List[Tuple[NDArrays, int]]) -> NDArrays:
     """Compute weighted average.
-    Args:
-        results: List of tuples containing the model weights and the number of samples used to compute the weights.
-    Returns: A list of model weights averaged according to the number of samples used to compute the weights.
+
+    :param results: List of tuples containing the model weights
+        and the number of samples used to compute the weights.
+    :return: A list of model weights averaged according to the
+        number of samples used to compute the weights.
     """
     # Calculate the total number of examples used during training
     num_examples_total = sum([num_examples for _, num_examples in results])

@@ -1,12 +1,11 @@
 """Helper function to boot up server"""
 
 from collections import OrderedDict
-from typing import List, Tuple, Dict, Optional, Callable, Union
-import time
+from logging import WARNING
 import pickle
+import time
+from typing import List, Tuple, Dict, Optional, Callable, Union
 
-import numpy as np
-import torch
 import flwr as fl
 from flwr.common import (
     Metrics,
@@ -23,13 +22,13 @@ from flwr.common import (
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.client_manager import ClientManager
 from flwr.server.strategy.aggregate import weighted_loss_avg
+import numpy as np
+import torch
 import wandb
 
-from logging import WARNING
-
-from security import fhe
 from utils.common import set_parameters
 from pytorch import engine
+from security import fhe
 from security.glue import (
     parameters_to_ndarrays_custom,
     ndarrays_to_parameters_custom,
@@ -37,6 +36,7 @@ from security.glue import (
 
 
 def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
+    """Callback to aggregate metrics on server level"""
     accuracies = [num_examples * m["accuracy"] for num_examples, m in metrics]
     recalls = [num_examples * m["recall_score"] for num_examples, m in metrics]
     precisions = [num_examples * m["precision_score"] for num_examples, m in metrics]
@@ -52,11 +52,14 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
 
 
 def evaluate2_factory(central, testloader, device):
+    """Factory to create evaluation function for server"""
+
     def evaluate2(
         server_round: int, parameters: NDArrays, config: Dict[str, Scalar]
     ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
+        """Calculate model performance on server level"""
         set_parameters(central, parameters)
-        loss, accuracy, y_pred, y_true, y_proba = engine.test(
+        loss, accuracy, _, _, _ = engine.test(
             central, testloader, loss_fn=torch.nn.CrossEntropyLoss(), device=device
         )
         print(f"Server-side evaluation loss {loss} / accuracy {accuracy}")
@@ -68,7 +71,10 @@ def evaluate2_factory(central, testloader, device):
 def get_on_fit_config_fn(
     epoch=2, lr=0.001, batch_size=32
 ) -> Callable[[int], Dict[str, str]]:
+    """Factory to create fit configuration"""
+
     def fit_config(server_round: int) -> Dict[str, str]:
+        "Returns fit config (dict containing learning rate etc.)"
         config = {
             "learning_rate": str(lr),
             "batch_size": str(batch_size),
@@ -81,6 +87,8 @@ def get_on_fit_config_fn(
 
 
 def aggreg_fit_checkpoint_factory(server_context):
+    """Factory to create checkpoint function"""
+
     def aggreg_fit_checkpoint(
         server_round,
         aggregated_parameters,
@@ -89,6 +97,7 @@ def aggreg_fit_checkpoint_factory(server_context):
         context_client=None,
         server_path="",
     ):
+        """Store model checkpoint"""
         if aggregated_parameters is not None:
             print(f"Saving round {server_round} aggregated_parameters...")
             aggregated_ndarrays: List[np.ndarray] = parameters_to_ndarrays_custom(
@@ -120,11 +129,28 @@ def aggreg_fit_checkpoint_factory(server_context):
 
 
 def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
+    """Factory to create Flower Strategy class used for server instance
+
+    :param server_context: Server FHE context (public key of client)
+    :type server_context: ts.Context
+    :param central: Model
+    :type central: torch.Module
+    :param lr: learning rate
+    :type lr: float
+    :param model_save: Path to store checkpoint if unencrypted
+    :type model_save: str
+    :param path_crypted: Path to store checkpoint if encrypted
+    :type path_crypted: str
+    :return: Flower Strategy class
+    :rtype: fl.server.strategy.Strategy
+    """
     aggreg_fit_checkpoint = aggreg_fit_checkpoint_factory(server_context)
 
     # A Strategy from scratch with the same sampling of the clients as it is in FedAvg
     # and then change the configuration dictionary
     class FedCustom(fl.server.strategy.Strategy):
+        """Customized Flower Server Strategy to incorporate FHE"""
+
         def __init__(
             self,
             fraction_fit: float = 1.0,
@@ -163,6 +189,7 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
 
             self.bytes_sent = 0
             self.bytes_received = 0
+            self.round_start_time = None
 
         def __repr__(self) -> str:
             # Same function as FedAvg(Strategy)
@@ -227,10 +254,8 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
                 config["learning_rate"] = (
                     standard_lr if idx < half_clients else higher_lr
                 )
-                """
-                Each pair of (ClientProxy, FitRes) constitutes 
-                a successful update from one of the previously selected clients.
-                """
+                # Each pair of (ClientProxy, FitRes) constitutes
+                # a successful update from one of the previously selected clients.
                 fit_configurations.append((client, FitIns(parameters, config)))
             # Successful updates from the previously selected and configured clients
             self.round_start_time = time.time()
@@ -287,7 +312,8 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
                 for _, fit_res in results
             ]
 
-            # Aggregate parameters using weighted average between the clients and convert back to parameters object (bytes)
+            # Aggregate parameters using weighted average between the clients
+            # and convert back to parameters object (bytes)
             parameters_aggregated = ndarrays_to_parameters_custom(
                 fhe.aggregate_custom(weights_results)
             )
@@ -306,7 +332,7 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
                 logger.log(WARNING, "No fit_metrics_aggregation_fn provided")
 
             # Same function as SaveModelStrategy(fl.server.strategy.FedAvg)
-            """Aggregate model weights using weighted average and store checkpoint"""
+            # Aggregate model weights using weighted average and store checkpoint
             aggreg_fit_checkpoint(
                 server_round,
                 parameters_aggregated,
@@ -353,7 +379,8 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
             )
 
             # Return client/config pairs
-            # Each pair of (ClientProxy, FitRes) constitutes a successful update from one of the previously selected clients
+            # Each pair of (ClientProxy, FitRes) constitutes a successful
+            # update from one of the previously selected clients
             return [(client, evaluate_ins) for client in clients]
 
         def aggregate_evaluate(

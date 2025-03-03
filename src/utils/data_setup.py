@@ -2,16 +2,16 @@
 Contains functionality for creating PyTorch DataLoaders for image classification data.
 """
 
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, random_split
 from torch import Generator
+from torch.utils.data import DataLoader, random_split
+from torchvision import datasets, transforms
 
 from utils.common import supp_ds_store
 
 # Normalization values for the different datasets
 NORMALIZE_DICT = {
-    "cifar": dict(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
-    "MRI": dict(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+    "cifar": {"mean": (0.5, 0.5, 0.5), "std": (0.5, 0.5, 0.5)},
+    "MRI": {"mean": (0.485, 0.456, 0.406), "std": (0.229, 0.224, 0.225)},
 }
 
 
@@ -50,7 +50,8 @@ def load_datasets(
     :param resize: the size of the image after resizing (if None, no resizing)
     :param seed: the seed for the random split
     :param num_workers: the number of workers
-    :param splitter: percentage of the training data to use for validation. Example: 10 means 10% of the training data
+    :param splitter: percentage of the training data to use for validation.
+        Example: 10 means 10% of the training data
     :param dataset: the name of the dataset in the data folder
     :param data_path: the path of the data folder
     :param data_path_val: the absolute path of the validation data (if None, no validation data)

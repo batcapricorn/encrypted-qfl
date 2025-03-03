@@ -6,9 +6,9 @@ the corresponding run group.
 """
 
 import argparse
-import yaml
 import json
 import os
+import yaml
 
 import pandas as pd
 import wandb
@@ -27,7 +27,10 @@ parser.add_argument(
 parser.add_argument(
     "--output_files",
     type=str,
-    help="List of output files seperated by semi-colon. Expects 2 files in the format `server_file;client_file`.",
+    help="""
+        List of output files seperated by semi-colon.
+        Expects 2 files in the format `server_file;client_file`.
+        """,
 )
 parser.add_argument(
     "--wandb_run_group", type=str, help="Run group for `wandb`", default=None
@@ -39,13 +42,13 @@ server_file = output_files[0]
 client_file = output_files[1]
 
 # Load settings
-with open("settings.yaml", "r") as file:
+with open("settings.yaml", "r", encoding="utf-8") as file:
     config = yaml.safe_load(file)
 
 # Initialize wandb
 run_group = args.wandb_run_group
 if run_group is None:
-    with open("tmp.json", "r") as f:
+    with open("tmp.json", "r", encoding="utf-8") as f:
         wandb_config = json.load(f)
 
     run_group = wandb_config.get("WANDB_RUN_GROUP")
@@ -81,23 +84,24 @@ df_client = pd.read_csv(
     ],
 )
 
+
+def log_metrics(df, prefix, step):
+    """Log CPU and memory metrics to wandb with a given prefix."""
+    wandb.log(
+        {
+            f"{prefix}_cpu_percentage": df.loc[step, "CPU (%)"],
+            f"{prefix}_real_memory_mb": df.loc[step, "Real Memory (MB)"],
+            f"{prefix}_virtual_memory_mb": df.loc[step, "Virtual Memory (MB)"],
+        },
+        step=step,
+    )
+
+
 df_server_row_count = len(df_server)
 df_client_row_count = len(df_client)
+
 for i in range(max(df_server_row_count, df_client_row_count)):
-    if i + 1 <= df_server_row_count:
-        wandb.log(
-            {
-                f"server_cpu_percentage": df_server.loc[i, "CPU (%)"],
-                f"server_real_memory_mb": df_server.loc[i, "Real Memory (MB)"],
-                f"server_virtual_memory_mb": df_server.loc[i, "Virtual Memory (MB)"],
-            },
-            step=i,
-        )
-    if i + 1 <= df_client_row_count:
-        wandb.log(
-            {
-                f"client_cpu_percentage": df_client.loc[i, "CPU (%)"],
-                f"client_real_memory_mb": df_client.loc[i, "Real Memory (MB)"],
-                f"client_virtual_memory_mb": df_client.loc[i, "Virtual Memory (MB)"],
-            }
-        )
+    if i < df_server_row_count:
+        log_metrics(df_server, "server", i)
+    if i < df_client_row_count:
+        log_metrics(df_client, "client", i)

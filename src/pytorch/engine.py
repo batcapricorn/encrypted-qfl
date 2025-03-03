@@ -2,11 +2,12 @@
 Contains functions for training and testing a PyTorch model.
 """
 
-import torch
-import torch.nn as nn
-from tqdm.auto import tqdm
 from typing import Dict, List, Tuple, Union
+
 import numpy as np
+import torch
+from torch import nn
+from tqdm.auto import tqdm
 
 
 def test(
@@ -15,22 +16,28 @@ def test(
     loss_fn: Union[torch.nn.Module, Tuple],
     device: torch.device,
 ):
-    """Tests a PyTorch model for a single epoch.
+    """
+    Tests a PyTorch model for a single epoch.
 
     Turns a target PyTorch model to "eval" mode and then performs
     a forward pass on a testing dataset.
 
-    Args:
-    model: A PyTorch model to be tested.
-    dataloader: A DataLoader instance for the model to be tested on.
-    loss_fn: A PyTorch loss function to calculate loss on the test data.
-    device: A target device to compute on (e.g. "cuda" or "cpu").
+    :param model: A PyTorch model to be tested.
+    :type model: torch.nn.Module
+    :param dataloader: A DataLoader instance for the model to be tested on.
+    :type dataloader: torch.utils.data.DataLoader
+    :param loss_fn: A PyTorch loss function to calculate loss on the test data.
+    :type loss_fn: torch.nn.Module
+    :param device: A target device to compute on (e.g., "cuda" or "cpu").
+    :type device: torch.device
 
-    Returns:
-    A tuple of testing loss and testing accuracy metrics.
-    In the form (test_loss, test_accuracy). For example:
+    :return: A tuple containing the test loss and test accuracy.
+    :rtype: Tuple[float, float]
 
-    (0.0223, 0.8985)
+    **Example:**
+
+    >>> test_loss, test_acc = test(model, dataloader, loss_fn, device)
+    >>> print(f"Test Loss: {test_loss}, Test Accuracy: {test_acc}")
     """
     # Put model in eval mode
     model.eval()
@@ -44,10 +51,9 @@ def test(
 
     # Turn on inference context manager
     with torch.inference_mode():
-        """
-        torch.inference_mode is analogous to torch.no_grad :
-        gets better performance by disabling view tracking and version counter bumps
-        """
+        # torch.inference_mode is analogous to torch.no_grad :
+        # gets better performance by disabling view tracking and version counter bumps
+
         # Loop through DataLoader batches
         for images, labels in dataloader:
             # Send data to target device
@@ -86,24 +92,31 @@ def train_step(
     optimizer: torch.optim.Optimizer,
     device: torch.device,
 ) -> Tuple[float, float]:
-    """Trains a PyTorch model for a single epoch.
+    """
+    Trains a PyTorch model for a single epoch.
 
-    Turns a target PyTorch model to training mode and then
-    runs through all the required training steps (forward
-    pass, loss calculation, optimizer step).
+    Turns a target PyTorch model to training mode and then runs through all
+    the required training steps, including forward pass, loss calculation,
+    and optimizer step.
 
-    Args:
-    model: A PyTorch model to be trained.
-    dataloader: A DataLoader instance for the model to be trained on.
-    loss_fn: A PyTorch loss function to minimize.
-    optimizer: A PyTorch optimizer to help minimize the loss function.
-    device: A target device to compute on (e.g. "cuda" or "cpu").
+    :param model: A PyTorch model to be trained.
+    :type model: torch.nn.Module
+    :param dataloader: A DataLoader instance for the model to be trained on.
+    :type dataloader: torch.utils.data.DataLoader
+    :param loss_fn: A PyTorch loss function to minimize.
+    :type loss_fn: torch.nn.Module
+    :param optimizer: A PyTorch optimizer to help minimize the loss function.
+    :type optimizer: torch.optim.Optimizer
+    :param device: A target device to compute on (e.g., "cuda" or "cpu").
+    :type device: torch.device
 
-    Returns:
-    A tuple of training loss and training accuracy metrics.
-    In the form (train_loss, train_accuracy). For example:
+    :return: A tuple containing the training loss and training accuracy.
+    :rtype: Tuple[float, float]
 
-    (0.1112, 0.8743)
+    **Example:**
+
+    >>> train_loss, train_acc = train_step(model, dataloader, loss_fn, optimizer, device)
+    >>> print(f"Train Loss: {train_loss}, Train Accuracy: {train_acc}")
     """
     # Put model in training mode
     model.train()
@@ -112,7 +125,7 @@ def train_step(
     train_loss, train_acc = 0, 0
 
     # Loop through data loader data batches
-    for batch, (images, labels) in enumerate(dataloader):
+    for _, (images, labels) in enumerate(dataloader):
 
         # Send data to target device
         images, labels = images.to(device), labels.to(device)
@@ -152,32 +165,41 @@ def train(
     epochs: int,
     device: torch.device,
 ) -> Dict[str, List]:
-    """Trains and tests a PyTorch model.
+    """
+    Trains and tests a PyTorch model.
 
-    Passes a target PyTorch models through train_step() and test()
-    functions for a number of epochs, training and testing the model
-    in the same epoch loop.
+    Passes a target PyTorch model through `train_step()` and `test()` functions
+    for a specified number of epochs, training and testing the model in the same loop.
 
-    Calculates, prints and stores evaluation metrics throughout.
+    Evaluation metrics are calculated, printed, and stored throughout training.
 
-    Args:
-    model: A PyTorch model to be trained and tested.
-    train_dataloader: A DataLoader instance for the model to be trained on.
-    test_dataloader: A DataLoader instance for the model to be tested on.
-    optimizer: A PyTorch optimizer to help minimize the loss function.
-    loss_fn: A PyTorch loss function to calculate loss on both datasets.
-    epochs: An integer indicating how many epochs to train for.
-    device: A target device to compute on (e.g. "cuda" or "cpu").
-    task: An optional string indicating the task (default is None).
+    :param model: A PyTorch model to be trained and tested.
+    :type model: torch.nn.Module
+    :param train_dataloader: DataLoader for training the model.
+    :type train_dataloader: torch.utils.data.DataLoader
+    :param test_dataloader: DataLoader for testing the model.
+    :type test_dataloader: torch.utils.data.DataLoader
+    :param optimizer: Optimizer to minimize the loss function.
+    :type optimizer: torch.optim.Optimizer
+    :param loss_fn: Loss function used for both training and testing.
+    :type loss_fn: torch.nn.Module
+    :param epochs: Number of epochs to train the model.
+    :type epochs: int
+    :param device: Target device for computation (e.g., "cuda" or "cpu").
+    :type device: torch.device
+    :param task: Optional string specifying the task (default is None).
+    :type task: Optional[str]
 
-    Returns:
-    A dictionary of training and testing loss as well as training and
-    testing accuracy metrics. Each metric has a value in a list for
-    each epoch.
-    In the form: {train_loss: [...],
-                  train_acc: [...],
-                  val_loss: [...],
-                  val_acc: [...]}
+    :return: A dictionary containing training and testing loss, as well as accuracy metrics.
+             Each metric is stored as a list with values for each epoch.
+    :rtype: Dict[str, List[float]]
+
+    **Example:**
+
+    >>> metrics = train_and_test(
+            model, train_dataloader, test_dataloader, optimizer, loss_fn, epochs=10, device="cuda"
+        )
+    >>> print(metrics["train_loss"], metrics["val_acc"])
     """
     # Create empty results dictionary
     results = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}

@@ -7,15 +7,14 @@ from pennylane import numpy as np
 
 
 class SimpleNet(nn.Module):
-    """
-    A simple CNN model
+    """PyTorch Model Class for simple NN
 
-    Args:
-        num_classes: An integer indicating the number of classes in the dataset.
+    :param num_classes: An integer indicating the number of classes in the dataset.
+    :type num_classes: int
     """
 
     def __init__(self, num_classes=10) -> None:
-        super(SimpleNet, self).__init__()
+        super().__init__()
         self.features = nn.Sequential(
             nn.Conv2d(3, 16, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
@@ -41,6 +40,16 @@ class SimpleNet(nn.Module):
 
 
 def simple_qnn_factory(n_qubits, n_layers):
+    """Function that creates a class that can be used
+    to create a simple NN with quantum layers.
+
+    :param n_qubits: number of quibits
+    :type n_qubits: int
+    :param n_layers: number of layers for `BasicEntanglerLayers`
+    :type n_layers: _int
+    :return: PyTorch Model Class
+    :rtype: nn.Module
+    """
     weight_shapes = {"weights": (n_layers, n_qubits)}
     dev = qml.device("default.qubit", wires=n_qubits)
 
@@ -51,15 +60,14 @@ def simple_qnn_factory(n_qubits, n_layers):
         return [qml.expval(qml.PauliZ(i)) for i in range(n_qubits)]
 
     class SimpleQNN(nn.Module):
-        """
-        A simple CNN model
+        """PyTorch Model Class for simple QNN
 
-        Args:
-            num_classes: An integer indicating the number of classes in the dataset.
+        :param num_classes: An integer indicating the number of classes in the dataset.
+        :type num_classes: int
         """
 
         def __init__(self, num_classes=10) -> None:
-            super(SimpleQNN, self).__init__()
+            super().__init__()
             self.features = nn.Sequential(
                 nn.Conv2d(3, 16, kernel_size=3, padding=1),
                 nn.ReLU(inplace=True),
@@ -89,8 +97,10 @@ def simple_qnn_factory(n_qubits, n_layers):
 
 
 def qcnn_factory():
-    """
-    Returns a QCNN class that reduces 8 input qubits to 4
+    """Returns a QCNN class that reduces 8 input qubits to 4
+
+    :return: PyTorch Model Class
+    :rtype: nn.Module
     """
     # Define quantum device with 16 qubits
     n_qubits = 8
@@ -188,7 +198,7 @@ def qcnn_factory():
         """
 
         def __init__(self, num_classes=10) -> None:
-            super(QCNN, self).__init__()
+            super().__init__()
 
             # Classical Convolutional Feature Extractor
             self.features = nn.Sequential(

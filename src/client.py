@@ -1,23 +1,25 @@
+"""
+Script to boot up client flower server
+"""
+
 import argparse
+import cProfile
+import json
 import os
 import pickle
-import yaml
-import json
-import cProfile
 import pstats
+import yaml
 
 import flwr as fl
-from flwr.common import Parameters, NDArrays
-import torch
 import tenseal as ts
+import torch
 import wandb
 
-from security import fhe
 from apps.client import FlowerClient, start_numpy_client
-from utils import data_setup
 from pytorch.model import SimpleNet, simple_qnn_factory, qcnn_factory
+from security import fhe
+from utils import data_setup
 from utils.common import choice_device, classes_string
-from security.glue import parameters_to_ndarrays_custom
 
 fl.common.GRPC_MAX_MESSAGE_LENGTH = 2000000000
 
@@ -50,13 +52,13 @@ parser.add_argument(
 args = parser.parse_args()
 
 # Load settings
-with open("settings.yaml", "r") as file:
+with open("settings.yaml", "r", encoding="utf-8") as file:
     config = yaml.safe_load(file)
 
 # Initialize wandb
 run_group = args.wandb_run_group
 if run_group is None:
-    with open("tmp.json", "r") as f:
+    with open("tmp.json", "r", encoding="utf-8") as f:
         wandb_config = json.load(f)
 
     run_group = wandb_config.get("WANDB_RUN_GROUP")
@@ -96,32 +98,32 @@ valloader = valloaders[args.client_index]
 DEVICE = torch.device(choice_device(config["device"]))
 CLASSES = classes_string(config["dataset"])
 
-context_client = None
+CONTEXT_CLIENT = None
 
-net = None
+NET = None
 if args.model == "fednn":
-    net = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
+    NET = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
 elif args.model == "fedqnn":
     SimpleQNN = simple_qnn_factory(config["n_qubits"], config["n_layers"])
-    net = SimpleQNN(num_classes=len(CLASSES)).to(DEVICE)
+    NET = SimpleQNN(num_classes=len(CLASSES)).to(DEVICE)
 elif args.model == "qcnn":
     QNN = qcnn_factory()
-    net = QNN(num_classes=len(CLASSES)).to(DEVICE)
+    NET = QNN(num_classes=len(CLASSES)).to(DEVICE)
 
 if args.he:
     print("Run with homomorphic encryption")
     if os.path.exists(config["secret_path"]):
         with open(config["secret_path"], "rb") as f:
             query = pickle.load(f)
-        context_client = ts.context_from(query["contexte"])
+        CONTEXT_CLIENT = ts.context_from(query["contexte"])
     else:
-        context_client = fhe.context()
+        CONTEXT_CLIENT = fhe.context()
         with open(config["secret_path"], "wb") as f:
             encode = pickle.dumps(
-                {"contexte": context_client.serialize(save_secret_key=True)}
+                {"contexte": CONTEXT_CLIENT.serialize(save_secret_key=True)}
             )
             f.write(encode)
-    secret_key = context_client.secret_key()
+    secret_key = CONTEXT_CLIENT.secret_key()
 else:
     print("Run WITHOUT homomorphic encryption")
 
@@ -141,22 +143,13 @@ if os.path.exists(config["model_save"]):
                     name, server_query[name], server_context
                 ).decrypt(secret_key)
             )
-    net.load_state_dict(checkpoint)
-
-
-def parameters_to_ndarrays(parameters: Parameters) -> NDArrays:
-    with open(config["secret_path"], "rb") as f:
-        query = pickle.load(f)
-
-    context_client = ts.context_from(query["contexte"])
-    return parameters_to_ndarrays_custom(parameters, context_client=context_client)
-
+    NET.load_state_dict(checkpoint)
 
 save_results = os.path.join(os.path.normpath(config["save_results"]), run_group)
 
 client = FlowerClient(
     args.client_index,
-    net,
+    NET,
     trainloader,
     valloader,
     device=DEVICE,
@@ -165,7 +158,7 @@ client = FlowerClient(
     roc_export=config["roc_export"],
     save_results=save_results,
     he=args.he,
-    context_client=context_client,
+    context_client=CONTEXT_CLIENT,
     classes=CLASSES,
 )
 
@@ -181,7 +174,7 @@ if __name__ == "__main__":
             save_results, f"cprofile_client{args.client_index}.prof"
         )
 
-        with open(dump_file, "w") as f:
+        with open(dump_file, "w", encoding="utf-8") as f:
             ps = pstats.Stats(pr, stream=f)
             ps.strip_dirs()
             ps.sort_stats("cumtime")
