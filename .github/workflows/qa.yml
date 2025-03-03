@@ -18,12 +18,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Check for changes in /src
-        id: check_changes
-        run: echo "::set-output name=changes::$(git diff --name-only ${{ github.sha }}...HEAD src)"
-
       - name: Install dependencies
-        if: steps.check_changes.outputs.changes != ''
         run: |
           python -m pip install --upgrade pip
           python -m pip install setuptools
@@ -31,9 +26,7 @@ jobs:
           pipenv install --dev
 
       - name: Run black
-        if: steps.check_changes.outputs.changes != ''
         run: pipenv run black src --check --diff
 
       - name: Run pylint
-        if: steps.check_changes.outputs.changes != ''
         run: pipenv run pylint src
