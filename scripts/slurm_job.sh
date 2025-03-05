@@ -1,5 +1,6 @@
 #!/bin/bash
-#SBATCH --cpus-per-task=60
+#SBATCH --gpus=v100:4
+#SBATCH --cpus-per-task=16
 #SBATCH --partition=clara
 #SBATCH --time=2-00:00:00
 #SBATCH --job-name=fl_simulation      # Job name
@@ -15,6 +16,7 @@ if [[ "$1" == "--he" ]]; then
     HE_FLAG="--he"
 fi
 
+module load CUDA/12.6.0
 module load Anaconda3/2024.02-1
 source activate base
 pip install flwr==1.5.0 tqdm numpy pennylane "ray>=2.3.0" matplotlib pillow scikit-learn seaborn pandas opacus pyyaml tenseal psrecord yq wandb
