@@ -8,3 +8,5 @@ timelogs
 wandb
 tmp.json
 settings.yaml
+*.err
+*.out

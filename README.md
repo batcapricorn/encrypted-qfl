@@ -4,18 +4,24 @@
 **Thesis Title:** _Fully Homomorphic Encryption in Quantum Federated Learning: Challenges & Analysis_
 
 ## TL,DR; 🚀
-1. Install dependencies using [pipenv](https://pipenv.pypa.io/en/latest/) and activate its shell:
+1. Install dependencies using [pipenv](https://pipenv.pypa.io/en/latest/):
     ```bash
     pipenv install
-    pipenv shell
     ```
 2. Adapt settings for training in `settings.yaml`:
     ```bash
     cp example-settings.yaml settings.yaml
     vi settings.yaml
     ```
-3. Run training examples using the scripts provided in `srcipts/` and a tiny dataset placed in `data-tiny/`: `./scripts/benchmark.sh fednn --he`
-4. On your first run you will be prompted to enter your [wandb](https://wandb.ai/) API key. All kinds of metrics are logged to `wandb`, e.g. encryption and decryption time, training time or network traffic (bytes).
+    A more detailed description of the various options is given below. 
+3. Before your first run, make sure you are logged in into [wandb](https://wandb.ai/). All kinds of metrics are logged to `wandb`, e.g. encryption and decryption time, training time or network traffic (bytes).
+    ```bash
+    pipenv run wandb login
+    ```
+4. Run training examples using the scripts provided in `srcipts/` and a tiny dataset placed in `data-tiny/`:
+    ```bash
+    pipenv run ./scripts/benchmark.sh fednn --he
+    ```
 
 ## Cookbook 🍳
 

@@ -278,14 +278,14 @@ def plot_graph(
 
 
 def get_parameters2(
-    net, context_client=None, layers_to_encrypt=["all"]
+    net, context_client=None, layers_to_encrypt=None
 ) -> List[np.ndarray]:
     """
     Get the parameters of the network
     :param net: network to get the parameters (weights and biases)
     :param context_client: context of the crypted weights (if None, return the clear weights)
     :param layers_to_encrypt: list of layers that eventually should be encrypted.
-        If list contains 'all', all layers will be encrypted
+        If list contains 'all' or is `None` (default), all layers will be encrypted
     :return: list of parameters (weights and biases) of the network
     """
     if context_client:
