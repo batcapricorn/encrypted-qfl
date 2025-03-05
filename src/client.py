@@ -161,6 +161,7 @@ client = FlowerClient(
     export_results_path=export_results_path,
     he=args.he,
     context_client=CONTEXT_CLIENT,
+    layers_to_encrypt=config["layers_to_encrypt"],
     classes=CLASSES,
 )
 

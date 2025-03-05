@@ -94,6 +94,7 @@ class FlowerClient(fl.client.NumPyClient):
         he,
         classes,
         context_client,
+        layers_to_encrypt,
     ):
         self.net = net
         self.trainloader = trainloader
@@ -107,10 +108,11 @@ class FlowerClient(fl.client.NumPyClient):
         self.he = he
         self.classes = classes
         self.context_client = context_client
+        self.layers_to_encrypt = layers_to_encrypt
 
     def get_parameters(self, config):
         print(f"[Client {self.cid}] get_parameters")
-        return get_parameters2(self.net, self.context_client)
+        return get_parameters2(self.net, self.context_client, self.layers_to_encrypt)
 
     def fit(self, parameters, config):
         server_round = config["server_round"]
@@ -142,7 +144,11 @@ class FlowerClient(fl.client.NumPyClient):
                 self.export_results_path, local_epochs, results, f"_Client {self.cid}"
             )
 
-        return get_parameters2(self.net, self.context_client), len(self.trainloader), {}
+        return (
+            get_parameters2(self.net, self.context_client, self.layers_to_encrypt),
+            len(self.trainloader),
+            {},
+        )
 
     def evaluate(self, parameters, config):
         print(f"[Client {self.cid}] evaluate, config: {config}")

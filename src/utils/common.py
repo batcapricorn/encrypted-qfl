@@ -277,18 +277,22 @@ def plot_graph(
         plt.savefig(path)
 
 
-def get_parameters2(net, context_client=None) -> List[np.ndarray]:
+def get_parameters2(
+    net, context_client=None, layers_to_encrypt=["all"]
+) -> List[np.ndarray]:
     """
     Get the parameters of the network
     :param net: network to get the parameters (weights and biases)
     :param context_client: context of the crypted weights (if None, return the clear weights)
+    :param layers_to_encrypt: list of layers that eventually should be encrypted.
+        If list contains 'all', all layers will be encrypted
     :return: list of parameters (weights and biases) of the network
     """
     if context_client:
         # Crypte of the model trained at the client for a given round
         # (after each round the model is aggregated between clients)
         encrypted_tensor = crypte(
-            net.state_dict(), context_client
+            net.state_dict(), context_client, layers_to_encrypt
         )  # list of encrypted layers (weights and biases)
 
         return [layer.get_weight() for layer in encrypted_tensor]
