@@ -9,7 +9,11 @@
     pipenv install
     pipenv shell
     ```
-2. Adapt settings for training in `settings.yaml`
+2. Adapt settings for training in `settings.yaml`:
+    ```bash
+    cp example-settings.yaml settings.yaml
+    vi settings.yaml
+    ```
 3. Run training examples using the scripts provided in `srcipts/` and a tiny dataset placed in `data-tiny/`: `./scripts/benchmark.sh fednn --he`
 4. On your first run you will be prompted to enter your [wandb](https://wandb.ai/) API key. All kinds of metrics are logged to `wandb`, e.g. encryption and decryption time, training time or network traffic (bytes).
 
@@ -31,14 +35,37 @@ The main entry point for this project is `./scripts/benchmark.sh`. This script s
 
 ---
 
-### **`settings.yaml`**  
-The primary configuration for training is found in `settings.yaml`. Notable options include:  
+### **`settings.yaml`**
 
-- **`num_workers`**: Defines the number of workers for the PyTorch dataloader. **Setting this to a value greater than 0 may cause concurrency issues.**  
-- **`max_epochs`**: Number of epochs per training iteration.  
-- **`number_clients`**: Specifies the number of client processes to be launched.  
-- **`min_fit_clients`, `min_avail_clients`, `min_eval_clients`**: Controls the minimum number of clients required for training and evaluation.  
-- **`path_public_key`**, **`secret_path`**. **`public_path`**, **`path_crypted`**: Paths to store CKKS key pairs if FHE is enabled.
+The primary configuration for training is found in `settings.yaml`.
+| Parameter | Example Value | Description |
+|----------------------------------|--------------------------------|--------------------------------------------------|
+| `wandb_project` | `qfl-playground` | Weights & Biases project name |
+| `data_path` | `"data-tiny/"` | Path to dataset |
+| `dataset` | `"MRI"` | Dataset name |
+| `seed` | `0` | Random seed |
+| `num_workers` | `0` | Number of workers for PyTorch dataloader. **Setting this to a value greater than 0 may cause concurrency issues.** |
+| `max_epochs` | `10` | Maximum training epochs |
+| `batch_size` | `10` | Batch size |
+| `splitter` | `10` | Data splitting parameter. Defines the percentage of training data used for validation. |
+| `device` | `"gpu"` | Compute device (`cpu` or `gpu`) |
+| `number_clients` | `1` | Number of FL clients |
+| `export_results_path` | `"results/"` | Directory to save results (e.g. ROC curves) |
+| `matrix_export` | `True` | Export confusion matrix |
+| `roc_export` | `True` | Export ROC curve |
+| `min_fit_clients` | `1` | Minimum clients for training |
+| `min_avail_clients` | `1` | Minimum available clients |
+| `min_eval_clients` | `1` | Minimum clients for evaluation |
+| `rounds` | `3` | Number of FL rounds |
+| `frac_fit` | `1.0` | Fraction of clients for training |
+| `frac_eval` | `0.5` | Fraction of clients for evaluation |
+| `lr` | `1e-3` | Learning rate |
+| `private_key_path` | `"private_key.pkl"` | Path to client’s private key |
+| `public_key_path` | `"public_key.pkl"` | Path to client’s public key |
+| `model_checkpoint_path` | `"model_checkpoint.pt"` | Path to unencrypted model checkpoint |
+| `encrypted_model_checkpoint_path`| `"encrypted_model_checkpoint.pkl"` | Path to encrypted model checkpoint |
+| `n_qubits` | `4` | Number of qubits for quantum layers (only applicable if simple QNN is used) |
+| `n_layers` | `6` | Number of layers in quantum circuit (only applicable if simple QNN is used) |
 
 
 ## References 📝

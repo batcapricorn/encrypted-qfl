@@ -23,6 +23,13 @@ if [[ "$1" == "--help" ]]; then
     exit 0
 fi
 
+# Clean directory
+PRIVATE_KEY_PATH=$(grep 'private_key_path:' settings.yaml | cut -d':' -f2 | cut -d' ' -f2 | xargs)
+PUBLIC_KEY_PATH=$(grep 'public_key_path:' settings.yaml | cut -d':' -f2 | cut -d' ' -f2 | xargs)
+MODEL_CHECKPPOINT_PATH=$(grep 'model_checkpoint_path:' settings.yaml | cut -d':' -f2 | cut -d' ' -f2 | xargs)
+ENCRYPTED_MODEL_CHECKPOINT_PATH=$(grep 'encrypted_model_checkpoint_path:' settings.yaml | cut -d':' -f2 | cut -d' ' -f2 | xargs)
+rm -f $PRIVATE_KEY_PATH $PUBLIC_KEY_PATH $MODEL_CHECKPPOINT_PATH $ENCRYPTED_MODEL_CHECKPOINT_PATH
+
 # Read the number of clients from settings.yaml
 NUM_CLIENTS=$(grep 'number_clients:' settings.yaml | cut -d':' -f2 | xargs)
 

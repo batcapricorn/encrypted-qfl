@@ -88,7 +88,7 @@ class FlowerClient(fl.client.NumPyClient):
         valloader,
         device,
         batch_size,
-        save_results,
+        export_results_path,
         matrix_export,
         roc_export,
         he,
@@ -101,7 +101,7 @@ class FlowerClient(fl.client.NumPyClient):
         self.cid = cid
         self.device = device
         self.batch_size = batch_size
-        self.save_results = save_results
+        self.export_results_path = export_results_path
         self.matrix_export = matrix_export
         self.roc_export = roc_export
         self.he = he
@@ -137,8 +137,10 @@ class FlowerClient(fl.client.NumPyClient):
         end_time = time.time() - start_time
         wandb.log({"client_round_time": end_time}, step=server_round)
 
-        if self.save_results:
-            save_graphs(self.save_results, local_epochs, results, f"_Client {self.cid}")
+        if self.export_results_path:
+            save_graphs(
+                self.export_results_path, local_epochs, results, f"_Client {self.cid}"
+            )
 
         return get_parameters2(self.net, self.context_client), len(self.trainloader), {}
 
@@ -161,14 +163,14 @@ class FlowerClient(fl.client.NumPyClient):
             "f1": f1,
         }
 
-        if self.save_results:
-            os.makedirs(self.save_results, exist_ok=True)
+        if self.export_results_path:
+            os.makedirs(self.export_results_path, exist_ok=True)
             if self.matrix_export:
                 save_matrix(
                     y_true,
                     y_pred,
                     os.path.join(
-                        self.save_results, f"confusion_matrix_client{self.cid}"
+                        self.export_results_path, f"confusion_matrix_client{self.cid}"
                     ),
                     self.classes,
                 )
@@ -176,7 +178,7 @@ class FlowerClient(fl.client.NumPyClient):
                 save_roc(
                     y_true,
                     y_proba,
-                    os.path.join(self.save_results, f"roc_client{self.cid}"),
+                    os.path.join(self.export_results_path, f"roc_client{self.cid}"),
                     len(self.classes),
                 )
 

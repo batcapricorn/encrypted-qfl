@@ -128,7 +128,9 @@ def aggreg_fit_checkpoint_factory(server_context):
     return aggreg_fit_checkpoint
 
 
-def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
+def fed_custom_factory(
+    server_context, central, lr, model_checkpoint_path, encrypted_model_checkpoint_path
+):
     """Factory to create Flower Strategy class used for server instance
 
     :param server_context: Server FHE context (public key of client)
@@ -137,10 +139,10 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
     :type central: torch.Module
     :param lr: learning rate
     :type lr: float
-    :param model_save: Path to store checkpoint if unencrypted
-    :type model_save: str
-    :param path_crypted: Path to store checkpoint if encrypted
-    :type path_crypted: str
+    :param model_checkpoint_path: Path to store checkpoint if unencrypted
+    :type model_checkpoint_path: str
+    :param encrypted_model_checkpoint_path: Path to store checkpoint if encrypted
+    :type encrypted_model_checkpoint_path: str
     :return: Flower Strategy class
     :rtype: fl.server.strategy.Strategy
     """
@@ -337,9 +339,9 @@ def fed_custom_factory(server_context, central, lr, model_save, path_crypted):
                 server_round,
                 parameters_aggregated,
                 central,
-                model_save,
+                model_checkpoint_path,
                 self.context_client,
-                path_crypted,
+                encrypted_model_checkpoint_path,
             )
             return parameters_aggregated, metrics_aggregated
 
