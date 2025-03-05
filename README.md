@@ -1,7 +1,7 @@
 [![Python Linting and Formatting](https://github.com/batcapricorn/qfl-playground/actions/workflows/qa.yml/badge.svg)](https://github.com/batcapricorn/qfl-playground/actions/workflows/qa.yml)
 
 # Integrating FHE into QFL
-**Thesis Title:** _Fully Homomorphic Encryption for Secure Parameter Sharing in Quantum Federated Learning: Challenges & Analysis_
+**Thesis Title:** _Fully Homomorphic Encryption in Quantum Federated Learning: Challenges & Analysis_
 
 ## TL,DR; 🚀
 1. Install dependencies using [pipenv](https://pipenv.pypa.io/en/latest/) and activate its shell:
@@ -25,7 +25,7 @@ The main entry point for this project is `./scripts/benchmark.sh`. This script s
 - **`--model`**: Specifies the model type. Options include:  
   - `fednn`: Runs a standard convolutional neural network (CNN).  
   - `fedqnn`: Runs the same CNN but with basic quantum layers.  
-  - `fedqcnn`: Runs a full **Quantum Convolutional Neural Network (QCNN)** as described in the [TensorFlow Quantum QCNN tutorial](https://www.tensorflow.org/quantum/tutorials/qcnn).  
+  - `qcnn`: Runs a full **Quantum Convolutional Neural Network (QCNN)** as described in the [TensorFlow Quantum QCNN tutorial](https://www.tensorflow.org/quantum/tutorials/qcnn).  
 
 - **`--he`**: Enables **Fully Homomorphic Encryption (FHE)** using the **CKKS** scheme for parameter encryption.  
 
@@ -42,7 +42,7 @@ The primary configuration for training is found in `settings.yaml`.
 |----------------------------------|--------------------------------|--------------------------------------------------|
 | `wandb_project` | `qfl-playground` | Weights & Biases project name |
 | `data_path` | `"data-tiny/"` | Path to dataset |
-| `dataset` | `"MRI"` | Dataset name |
+| `dataset` | `"MRI"` | Dataset name. So far, only `MRI` was tested. |
 | `seed` | `0` | Random seed |
 | `num_workers` | `0` | Number of workers for PyTorch dataloader. **Setting this to a value greater than 0 may cause concurrency issues.** |
 | `max_epochs` | `10` | Maximum training epochs |
@@ -64,8 +64,8 @@ The primary configuration for training is found in `settings.yaml`.
 | `public_key_path` | `"public_key.pkl"` | Path to client’s public key |
 | `model_checkpoint_path` | `"model_checkpoint.pt"` | Path to unencrypted model checkpoint |
 | `encrypted_model_checkpoint_path`| `"encrypted_model_checkpoint.pkl"` | Path to encrypted model checkpoint |
-| `n_qubits` | `4` | Number of qubits for quantum layers (only applicable if simple QNN is used) |
-| `n_layers` | `6` | Number of layers in quantum circuit (only applicable if simple QNN is used) |
+| `n_qubits` | `4` | Number of qubits for quantum layers (only applicable if simple QNN is used, see `fedqnn` option of benchmark script) |
+| `n_layers` | `6` | Number of layers in quantum circuit (only applicable if simple QNN is used, see `fedqnn` option of benchmark script) |
 
 
 ## References 📝
