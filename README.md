@@ -64,6 +64,7 @@ The primary configuration for training is found in `settings.yaml`.
 | `public_key_path` | `"public_key.pkl"` | Path to client’s public key |
 | `model_checkpoint_path` | `"model_checkpoint.pt"` | Path to unencrypted model checkpoint |
 | `encrypted_model_checkpoint_path`| `"encrypted_model_checkpoint.pkl"` | Path to encrypted model checkpoint |
+| `layers_to_encrypt`| `["classifier.2.weight"]` | List of layers that should be encrypted. If list contains `all`, every layer will be encrypted.
 | `n_qubits` | `4` | Number of qubits for quantum layers (only applicable if simple QNN is used, see `fedqnn` option of benchmark script) |
 | `n_layers` | `6` | Number of layers in quantum circuit (only applicable if simple QNN is used, see `fedqnn` option of benchmark script) |
 

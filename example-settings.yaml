@@ -22,5 +22,6 @@ private_key_path: "private_key.pkl"  # private key of client
 public_key_path: "public_key.pkl"  # publc key of client
 model_checkpoint_path: "model_checkpoint.pt" # used to store unencrypted checkpoints
 encrypted_model_checkpoint_path: "encrypted_model_checkpoint.pkl"  # used to store encrypted checkpoints in aggreg_fit_checkpoint (as path_checkpoint)
+layers_to_encrypt: ["all"]
 n_qubits: 4
 n_layers: 6
