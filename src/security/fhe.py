@@ -286,18 +286,21 @@ class CryptedLayer(Layer):
         return {self.name: self.weight_array.serialize()}
 
 
-def crypte(client_w, context_c, layers_to_encrypt=["all"]):
+def crypte(client_w, context_c, layers_to_encrypt=None):
     """
     This function is used to crypte the weights of a neural network.
 
     :param client_w: dictionary of the weights of a neural network
     :param context_c: the context of the encryption
     :param layers_to_encrypt: list of layers that eventually should be encrypted.
-        If list contains 'all', all layers will be encrypted
+        If list contains 'all' or is `None` (default), all layers will be encrypted
     :return: a list of Layer objects (crypted weights or not)
     """
     start_time = time.time()
     encrypted = []
+    if layers_to_encrypt is None:
+        layers_to_encrypt = ["all"]
+
     if "all" in layers_to_encrypt:
         return [
             CryptedLayer(name_layer, weight_array, context_c)
