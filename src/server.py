@@ -60,12 +60,12 @@ args = parser.parse_args()
 with open("settings.yaml", "r", encoding="utf-8") as file:
     config = yaml.safe_load(file)
 
-if os.path.exists(config["secret_path"]):
-    print("it exists")
-    _, context_client = read_query(config["secret_path"])
-
-else:
-    combo_keys(client_path=config["secret_path"], server_path=config["public_path"])
+if args.he:
+    if os.path.exists(config["public_key_path"]) is False:
+        combo_keys(
+            client_path=config["private_key_path"],
+            server_path=config["public_key_path"],
+        )
 
 # Initialize wandb
 run_group = args.wandb_run_group
@@ -94,9 +94,12 @@ wandb.init(
     name="server",
 )
 
-print("get public key : ", config["path_public_key"])
-_, server_context = read_query(config["path_public_key"])
-server_context = ts.context_from(server_context)
+SERVER_CONTEXT = None
+if args.he:
+    print("get public key : ", config["public_key_path"])
+    _, SERVER_CONTEXT = read_query(config["public_key_path"])
+    SERVER_CONTEXT = ts.context_from(SERVER_CONTEXT)
+
 DEVICE = torch.device(choice_device(config["device"]))
 CLASSES = classes_string(config["dataset"])
 CENTRAL = None
@@ -127,7 +130,11 @@ trainloaders, valloaders, testloader = data_setup.load_datasets(
 )  # Use the same path for validation data
 
 FedCustom = fed_custom_factory(
-    server_context, CENTRAL, config["lr"], config["model_save"], config["path_crypted"]
+    SERVER_CONTEXT,
+    CENTRAL,
+    config["lr"],
+    config["model_checkpoint_path"],
+    config["encrypted_model_checkpoint_path"],
 )
 
 strategy = FedCustom(
@@ -146,7 +153,7 @@ strategy = FedCustom(
     on_fit_config_fn=get_on_fit_config_fn(
         epoch=config["max_epochs"], batch_size=config["batch_size"]
     ),
-    context_client=server_context,
+    context_client=SERVER_CONTEXT,
 )
 
 if __name__ == "__main__":
@@ -171,9 +178,11 @@ if __name__ == "__main__":
         step = config["rounds"] + 1
         wandb.log({"total_training_time": end_time}, step=step)
 
-        save_results = os.path.join(os.path.normpath(config["save_results"]), run_group)
-        os.makedirs(save_results, exist_ok=True)
-        dump_file = os.path.join(save_results, "cprofile_server.prof")
+        export_results_path = os.path.join(
+            os.path.normpath(config["export_results_path"]), run_group
+        )
+        os.makedirs(export_results_path, exist_ok=True)
+        dump_file = os.path.join(export_results_path, "cprofile_server.prof")
 
         with open(dump_file, "w", encoding="utf-8") as f:
             ps = pstats.Stats(pr, stream=f)

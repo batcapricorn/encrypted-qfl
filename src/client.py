@@ -112,13 +112,13 @@ elif args.model == "qcnn":
 
 if args.he:
     print("Run with homomorphic encryption")
-    if os.path.exists(config["secret_path"]):
-        with open(config["secret_path"], "rb") as f:
+    if os.path.exists(config["private_key_path"]):
+        with open(config["private_key_path"], "rb") as f:
             query = pickle.load(f)
         CONTEXT_CLIENT = ts.context_from(query["contexte"])
     else:
         CONTEXT_CLIENT = fhe.context()
-        with open(config["secret_path"], "wb") as f:
+        with open(config["private_key_path"], "wb") as f:
             encode = pickle.dumps(
                 {"contexte": CONTEXT_CLIENT.serialize(save_secret_key=True)}
             )
@@ -127,14 +127,14 @@ if args.he:
 else:
     print("Run WITHOUT homomorphic encryption")
 
-if os.path.exists(config["model_save"]):
+if os.path.exists(config["model_checkpoint_path"]):
     print("To get the checkpoint")
-    checkpoint = torch.load(config["model_save"], map_location=DEVICE)[
+    checkpoint = torch.load(config["model_checkpoint_path"], map_location=DEVICE)[
         "model_state_dict"
     ]
     if args.he:
         print("to decrypt model")
-        server_query, server_context = fhe.read_query(config["secret_path"])
+        server_query, server_context = fhe.read_query(config["private_key_path"])
         server_context = ts.context_from(server_context)
         for name in checkpoint:
             print(name)
@@ -145,7 +145,9 @@ if os.path.exists(config["model_save"]):
             )
     NET.load_state_dict(checkpoint)
 
-save_results = os.path.join(os.path.normpath(config["save_results"]), run_group)
+export_results_path = os.path.join(
+    os.path.normpath(config["export_results_path"]), run_group
+)
 
 client = FlowerClient(
     args.client_index,
@@ -156,7 +158,7 @@ client = FlowerClient(
     batch_size=config["batch_size"],
     matrix_export=config["matrix_export"],
     roc_export=config["roc_export"],
-    save_results=save_results,
+    export_results_path=export_results_path,
     he=args.he,
     context_client=CONTEXT_CLIENT,
     classes=CLASSES,
@@ -171,7 +173,7 @@ if __name__ == "__main__":
             grpc_max_message_length=2000000000,
         )
         dump_file = os.path.join(
-            save_results, f"cprofile_client{args.client_index}.prof"
+            export_results_path, f"cprofile_client{args.client_index}.prof"
         )
 
         with open(dump_file, "w", encoding="utf-8") as f:
