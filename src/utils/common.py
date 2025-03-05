@@ -187,7 +187,7 @@ def save_roc(targets, y_proba, path, nbr_classes):
     plt.plot(
         fpr["macro"],
         tpr["macro"],
-        label=f"macro-average ROC curve (area = {roc_auc["macro"]:.2f})",
+        label=f"macro-average ROC curve (area = {roc_auc['macro']:.2f})",
         color="navy",
         linestyle=":",
         linewidth=4,
