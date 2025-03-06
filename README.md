@@ -37,7 +37,7 @@ The main entry point for this project is `./scripts/benchmark.sh`. This script s
 
 #### **Example Usage:**  
 - Run a simple **neural network with FHE**: `./scripts/benchmark.sh fednn --he`  
-- Run a **Quantum Convolutional Neural Network (QCNN) without FHE**: `./scripts/benchmark.sh fedqcnn`
+- Run a **Quantum Convolutional Neural Network (QCNN) without FHE**: `./scripts/benchmark.sh qcnn`
 
 ---
 
