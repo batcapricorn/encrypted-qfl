@@ -16,17 +16,18 @@ class SimpleNet(nn.Module):
     def __init__(self, num_classes=10) -> None:
         super().__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(3, 16, kernel_size=3, padding=1),
+            nn.Conv2d(3, 8, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(16, 32, kernel_size=3, padding=1),
+            nn.Conv2d(8, 16, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
+        self.global_avg_pool = nn.AdaptiveAvgPool2d(1)
         self.classifier = nn.Sequential(
-            nn.Linear(32 * 56 * 56, 128),
+            nn.Linear(16, 32),
             nn.ReLU(inplace=True),
-            nn.Linear(128, num_classes),
+            nn.Linear(32, num_classes),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -34,6 +35,7 @@ class SimpleNet(nn.Module):
         Forward pass of the neural network
         """
         x = self.features(x)
+        x = self.global_avg_pool(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
@@ -69,17 +71,18 @@ def simple_qnn_factory(n_qubits, n_layers):
         def __init__(self, num_classes=10) -> None:
             super().__init__()
             self.features = nn.Sequential(
-                nn.Conv2d(3, 16, kernel_size=3, padding=1),
+                nn.Conv2d(3, 8, kernel_size=3, padding=1),
                 nn.ReLU(inplace=True),
                 nn.MaxPool2d(kernel_size=2, stride=2),
-                nn.Conv2d(16, 32, kernel_size=3, padding=1),
+                nn.Conv2d(8, 16, kernel_size=3, padding=1),
                 nn.ReLU(inplace=True),
                 nn.MaxPool2d(kernel_size=2, stride=2),
             )
+            self.global_avg_pool = nn.AdaptiveAvgPool2d(1)
             self.classifier = nn.Sequential(
-                nn.Linear(32 * 56 * 56, 128),
+                nn.Linear(16, 32),
                 nn.ReLU(inplace=True),
-                nn.Linear(128, n_qubits),
+                nn.Linear(32, n_qubits),
                 qml.qnn.TorchLayer(quantum_net, weight_shapes=weight_shapes),
                 nn.Linear(n_qubits, num_classes),
             )
