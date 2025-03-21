@@ -94,6 +94,11 @@ wandb.init(
     name="server",
 )
 
+EXPORT_RESULTS_PATH = os.path.join(
+    os.path.normpath(config["export_results_path"]), run_group
+)
+os.makedirs(EXPORT_RESULTS_PATH, exist_ok=True)
+
 SERVER_CONTEXT = None
 if args.he:
     print("get public key : ", config["public_key_path"])
@@ -133,8 +138,8 @@ FedCustom = fed_custom_factory(
     SERVER_CONTEXT,
     CENTRAL,
     config["lr"],
-    config["model_checkpoint_path"],
-    config["encrypted_model_checkpoint_path"],
+    os.path.join(EXPORT_RESULTS_PATH, config["model_checkpoint_path"]),
+    os.path.join(EXPORT_RESULTS_PATH, config["encrypted_model_checkpoint_path"]),
 )
 
 strategy = FedCustom(
@@ -178,11 +183,7 @@ if __name__ == "__main__":
         step = config["rounds"] + 1
         wandb.log({"total_training_time": end_time}, step=step)
 
-        export_results_path = os.path.join(
-            os.path.normpath(config["export_results_path"]), run_group
-        )
-        os.makedirs(export_results_path, exist_ok=True)
-        dump_file = os.path.join(export_results_path, "cprofile_server.prof")
+        dump_file = os.path.join(EXPORT_RESULTS_PATH, "cprofile_server.prof")
 
         with open(dump_file, "w", encoding="utf-8") as f:
             ps = pstats.Stats(pr, stream=f)

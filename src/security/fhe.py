@@ -302,17 +302,18 @@ def crypte(client_w, context_c, layers_to_encrypt=None):
         layers_to_encrypt = ["all"]
 
     if "all" in layers_to_encrypt:
-        return [
+        encrypted = [
             CryptedLayer(name_layer, weight_array, context_c)
             for name_layer, weight_array in client_w.items()
         ]
-    for name_layer, weight_array in client_w.items():
-        if name_layer in layers_to_encrypt:
-            print(f"Encrypting layer: {name_layer}")
-            encrypted.append(CryptedLayer(name_layer, weight_array, context_c))
-        else:
-            print(f"Skipping encryption of layer: {name_layer}")
-            encrypted.append(Layer(name_layer, weight_array))
+    else:
+        for name_layer, weight_array in client_w.items():
+            if name_layer in layers_to_encrypt:
+                print(f"Encrypting layer: {name_layer}")
+                encrypted.append(CryptedLayer(name_layer, weight_array, context_c))
+            else:
+                print(f"Skipping encryption of layer: {name_layer}")
+                encrypted.append(Layer(name_layer, weight_array))
 
     end_time = time.time() - start_time
     wandb.log({"encryption_time": end_time}, commit=False)

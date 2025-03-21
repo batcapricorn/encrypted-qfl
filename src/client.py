@@ -95,6 +95,11 @@ trainloaders, valloaders, testloader = data_setup.load_datasets(
 trainloader = trainloaders[args.client_index]
 valloader = valloaders[args.client_index]
 
+EXPORT_RESULTS_PATH = os.path.join(
+    os.path.normpath(config["export_results_path"]), run_group
+)
+os.makedirs(EXPORT_RESULTS_PATH, exist_ok=True)
+
 DEVICE = torch.device(choice_device(config["device"]))
 CLASSES = classes_string(config["dataset"])
 
@@ -127,11 +132,10 @@ if args.he:
 else:
     print("Run WITHOUT homomorphic encryption")
 
-if os.path.exists(config["model_checkpoint_path"]):
+checkpoint_path = os.path.join(EXPORT_RESULTS_PATH, config["model_checkpoint_path"])
+if os.path.exists(checkpoint_path):
     print("To get the checkpoint")
-    checkpoint = torch.load(config["model_checkpoint_path"], map_location=DEVICE)[
-        "model_state_dict"
-    ]
+    checkpoint = torch.load(checkpoint_path, map_location=DEVICE)["model_state_dict"]
     if args.he:
         print("to decrypt model")
         server_query, server_context = fhe.read_query(config["private_key_path"])
@@ -145,10 +149,6 @@ if os.path.exists(config["model_checkpoint_path"]):
             )
     NET.load_state_dict(checkpoint)
 
-export_results_path = os.path.join(
-    os.path.normpath(config["export_results_path"]), run_group
-)
-
 client = FlowerClient(
     args.client_index,
     NET,
@@ -158,7 +158,7 @@ client = FlowerClient(
     batch_size=config["batch_size"],
     matrix_export=config["matrix_export"],
     roc_export=config["roc_export"],
-    export_results_path=export_results_path,
+    export_results_path=EXPORT_RESULTS_PATH,
     he=args.he,
     context_client=CONTEXT_CLIENT,
     layers_to_encrypt=config["layers_to_encrypt"],
@@ -174,7 +174,7 @@ if __name__ == "__main__":
             grpc_max_message_length=2000000000,
         )
         dump_file = os.path.join(
-            export_results_path, f"cprofile_client{args.client_index}.prof"
+            EXPORT_RESULTS_PATH, f"cprofile_client{args.client_index}.prof"
         )
 
         with open(dump_file, "w", encoding="utf-8") as f:
