@@ -92,6 +92,7 @@ def simple_qnn_factory(n_qubits, n_layers):
             Forward pass of the neural network
             """
             x = self.features(x)
+            x = self.global_avg_pool(x)
             x = x.view(x.size(0), -1)
             x = self.classifier(x)
             return x
@@ -203,21 +204,21 @@ def qcnn_factory():
         def __init__(self, num_classes=10) -> None:
             super().__init__()
 
-            # Classical Convolutional Feature Extractor
             self.features = nn.Sequential(
-                nn.Conv2d(3, 16, kernel_size=3, padding=1),
+                nn.Conv2d(3, 8, kernel_size=3, padding=1),
                 nn.ReLU(inplace=True),
                 nn.MaxPool2d(kernel_size=2, stride=2),
-                nn.Conv2d(16, 32, kernel_size=3, padding=1),
+                nn.Conv2d(8, 16, kernel_size=3, padding=1),
                 nn.ReLU(inplace=True),
                 nn.MaxPool2d(kernel_size=2, stride=2),
             )
+            self.global_avg_pool = nn.AdaptiveAvgPool2d(1)
 
             # Fully Connected + QCNN layers
             self.classifier = nn.Sequential(
-                nn.Linear(32 * 56 * 56, 128),
+                nn.Linear(16, 32),
                 nn.ReLU(inplace=True),
-                nn.Linear(128, n_qubits),  # Classical-to-Quantum transition
+                nn.Linear(32, n_qubits),
                 qml.qnn.TorchLayer(
                     qcnn_circuit, weight_shapes=weight_shapes
                 ),  # Quantum Convolutional Neural Network
@@ -227,6 +228,7 @@ def qcnn_factory():
         def forward(self, x: torch.Tensor) -> torch.Tensor:
             """Forward pass of the hybrid CNN-QCNN"""
             x = self.features(x)  # Extract features using CNN
+            x = self.global_avg_pool(x)
             x = x.view(x.size(0), -1)  # Flatten
             x = self.classifier(x)  # Process through QCNN
             return x
