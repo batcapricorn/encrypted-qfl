@@ -31,7 +31,9 @@ The main entry point for this project is `./scripts/benchmark.sh`. This script s
 - **`--model`**: Specifies the model type. Options include:  
   - `fednn`: Runs a standard convolutional neural network (CNN).  
   - `fedqnn`: Runs the same CNN but with basic quantum layers.  
-  - `qcnn`: Runs a full **Quantum Convolutional Neural Network (QCNN)** as described in the [TensorFlow Quantum QCNN tutorial](https://www.tensorflow.org/quantum/tutorials/qcnn).  
+  - `qcnn`: Runs a full **Quantum Convolutional Neural Network (QCNN)** as described in the [TensorFlow Quantum QCNN tutorial](https://www.tensorflow.org/quantum/tutorials/qcnn).
+  - `resnet18`: Runs a ResNet18 model where only the last layer is tuned.
+    Allows for selective encryption of layers.
 
 - **`--he`**: Enables **Fully Homomorphic Encryption (FHE)** using the **CKKS** scheme for parameter encryption.  
 
