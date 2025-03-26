@@ -314,13 +314,16 @@ def set_parameters(net, parameters: List[np.ndarray], context_client=None):
         dico = {k: deserialized_layer(k, v, context_client) for k, v in params_dict}
 
         state_dict = OrderedDict(
-            {k: torch.Tensor(v.decrypt(secret_key)) for k, v in dico.items()}
+            {
+                k: torch.from_numpy(np.copy(v.decrypt(secret_key)))
+                for k, v in dico.items()
+            }
         )
         end_time = time.time() - start_time
         wandb.log({"decryption_time": end_time}, commit=False)
 
     else:
-        dico = {k: torch.Tensor(v) for k, v in params_dict}
+        dico = {k: torch.from_numpy(np.copy(v)) for k, v in params_dict}
         state_dict = OrderedDict(dico)
 
     net.load_state_dict(state_dict, strict=True)

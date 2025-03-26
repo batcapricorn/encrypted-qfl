@@ -16,7 +16,7 @@ import torch
 import wandb
 
 from apps.client import FlowerClient, start_numpy_client
-from pytorch.model import SimpleNet, simple_qnn_factory, qcnn_factory
+from pytorch.model import SimpleNet, SimpleResNet18, simple_qnn_factory, qcnn_factory
 from security import fhe
 from utils import data_setup
 from utils.common import choice_device, classes_string
@@ -41,9 +41,9 @@ parser.add_argument(
 parser.add_argument(
     "--model",
     type=str,
-    choices=["fednn", "fedqnn", "qcnn"],
+    choices=["fednn", "fedqnn", "qcnn", "resnet18"],
     default="fednn",
-    help="Specify the model type: 'fednn', 'fedqnn' or 'qcnn'.",
+    help="Specify the model type: 'fednn', 'fedqnn', 'qcnn' or 'resnet18'.",
 )
 parser.add_argument(
     "--wandb_run_group", type=str, help="Run group for `wandb`", default=None
@@ -114,6 +114,8 @@ elif args.model == "fedqnn":
 elif args.model == "qcnn":
     QNN = qcnn_factory()
     NET = QNN(num_classes=len(CLASSES)).to(DEVICE)
+elif args.model == "resnet18":
+    NET = SimpleResNet18(num_classes=len(CLASSES)).to(DEVICE)
 
 if args.he:
     print("Run with homomorphic encryption")

@@ -115,7 +115,9 @@ def aggreg_fit_checkpoint_factory(server_context):
                 params_dict = zip(
                     central_model.state_dict().keys(), aggregated_ndarrays
                 )
-                state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
+                state_dict = OrderedDict(
+                    {k: torch.from_numpy(np.copy(v)) for k, v in params_dict}
+                )
                 central_model.load_state_dict(state_dict, strict=True)
                 if path_checkpoint:
                     torch.save(

@@ -25,7 +25,7 @@ from apps.server import (
     get_on_fit_config_fn,
     fed_custom_factory,
 )
-from pytorch.model import SimpleNet, simple_qnn_factory, qcnn_factory
+from pytorch.model import SimpleNet, SimpleResNet18, simple_qnn_factory, qcnn_factory
 from security.fhe import read_query
 from security.glue import combo_keys, ndarrays_to_parameters_custom
 from utils.common import choice_device, classes_string, get_parameters2
@@ -46,9 +46,9 @@ parser.add_argument(
 parser.add_argument(
     "--model",
     type=str,
-    choices=["fednn", "fedqnn", "qcnn"],
+    choices=["fednn", "fedqnn", "qcnn", "resnet18"],
     default="fednn",
-    help="Specify the model type: 'fednn', 'fedqnn' or 'qcnn'.",
+    help="Specify the model type: 'fednn', 'fedqnn', 'qcnn' or 'resnet18'.",
 )
 parser.add_argument(
     "--wandb_run_group", type=str, help="Run group for `wandb`", default=None
@@ -116,6 +116,8 @@ elif args.model == "fedqnn":
 elif args.model == "qcnn":
     QNN = qcnn_factory()
     CENTRAL = QNN(num_classes=len(CLASSES)).to(DEVICE)
+elif args.model == "resnet18":
+    CENTRAL = SimpleResNet18(num_classes=len(CLASSES)).to(DEVICE)
 
 
 # Log number of trainable parameters

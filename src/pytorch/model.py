@@ -2,6 +2,7 @@
 
 from torch import nn
 import torch
+from torchvision import models
 import pennylane as qml
 from pennylane import numpy as np
 
@@ -39,6 +40,34 @@ class SimpleNet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
+
+
+class SimpleResNet18(nn.Module):
+    """PyTorch Model Class using ResNet18 for feature extraction.
+
+    :param num_classes: An integer indicating the number of classes in the dataset.
+    :type num_classes: int
+    """
+
+    def __init__(self, num_classes=10) -> None:
+        super().__init__()
+
+        self.features = models.resnet18(pretrained=True)
+
+        for param in self.features.parameters():
+            param.requires_grad = False
+
+        num_features = self.features.fc.in_features
+
+        self.original_fc = self.features.fc
+
+        self.features.fc = nn.Sequential(nn.Linear(num_features, num_classes))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass of the neural network
+        """
+        return self.features(x)
 
 
 def simple_qnn_factory(n_qubits, n_layers):
