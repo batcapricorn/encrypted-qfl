@@ -6,8 +6,6 @@ export ROC export
 from collections import OrderedDict
 import os
 import time
-from typing import List
-
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -279,35 +277,40 @@ def plot_graph(
 
 def get_parameters2(
     net, context_client=None, layers_to_encrypt=None
-) -> List[np.ndarray]:
+) -> list[np.ndarray]:
     """
-    Get the parameters of the network
-    :param net: network to get the parameters (weights and biases)
-    :param context_client: context of the crypted weights (if None, return the clear weights)
-    :param layers_to_encrypt: list of layers that eventually should be encrypted.
-        If list contains 'all' or is `None` (default), all layers will be encrypted
-    :return: list of parameters (weights and biases) of the network
-    """
-    if context_client:
-        # Crypte of the model trained at the client for a given round
-        # (after each round the model is aggregated between clients)
-        encrypted_tensor = crypte(
-            net.state_dict(), context_client, layers_to_encrypt
-        )  # list of encrypted layers (weights and biases)
+    Get the trainable parameters of the network (only those with requires_grad=True).
 
+    :param net: The neural network model.
+    :param context_client: If provided, encrypts the selected layers.
+    :param layers_to_encrypt: List of layers to encrypt. If "all" or None, encrypt all layers.
+    :return: List of parameters (weights and biases) of the network.
+    """
+    trainable_keys = {k for k, v in net.named_parameters() if v.requires_grad}
+    trainable_params = {
+        k: v for k, v in net.state_dict().items() if k in trainable_keys
+    }
+    if context_client:
+        # Encrypt only trainable parameters
+        encrypted_tensor = crypte(trainable_params, context_client, layers_to_encrypt)
         return [layer.get_weight() for layer in encrypted_tensor]
 
-    return [val.cpu().numpy() for _, val in net.state_dict().items()]
+    return [val.cpu().numpy() for val in trainable_params.values()]
 
 
-def set_parameters(net, parameters: List[np.ndarray], context_client=None):
+def set_parameters(net, parameters: list[np.ndarray], context_client=None):
     """
-    Update the parameters of the network with the given parameters (weights and biases)
-    :param net: network to set the parameters (weights and biases)
-    :param parameters: list of parameters (weights and biases) to set
-    :param context_client: context of the crypted weights (if None, set the clear weights)
+    Update the trainable parameters of the network.
+
+    :param net: The neural network model.
+    :param parameters: List of parameters (weights and biases) to set.
+    :param context_client: If provided, decrypts the selected layers.
     """
-    params_dict = zip(net.state_dict().keys(), parameters)
+    # Only update layers where requires_grad=True
+    trainable_keys = [k for k, v in net.named_parameters() if v.requires_grad]
+
+    params_dict = zip(trainable_keys, parameters)
+
     if context_client:
         start_time = time.time()
         secret_key = context_client.secret_key()
@@ -326,8 +329,9 @@ def set_parameters(net, parameters: List[np.ndarray], context_client=None):
         dico = {k: torch.from_numpy(np.copy(v)) for k, v in params_dict}
         state_dict = OrderedDict(dico)
 
-    net.load_state_dict(state_dict, strict=True)
-    print("Updated model")
+    # Load only trainable parameters
+    net.load_state_dict(state_dict, strict=False)
+    print("Updated trainable model parameters")
 
 
 def eval_classification(y_test, y_pred):

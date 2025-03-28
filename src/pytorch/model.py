@@ -58,10 +58,8 @@ class SimpleResNet18(nn.Module):
             param.requires_grad = False
 
         num_features = self.features.fc.in_features
-
-        self.original_fc = self.features.fc
-
         self.features.fc = nn.Sequential(nn.Linear(num_features, num_classes))
+        self.features.fc = self.features.fc.requires_grad_(True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """

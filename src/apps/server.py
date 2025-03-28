@@ -100,25 +100,28 @@ def aggreg_fit_checkpoint_factory(server_context):
         """Store model checkpoint"""
         if aggregated_parameters is not None:
             print(f"Saving round {server_round} aggregated_parameters...")
+            trainable_keys = [
+                k for k, v in central_model.named_parameters() if v.requires_grad
+            ]
+            print(trainable_keys)
             aggregated_ndarrays: List[np.ndarray] = parameters_to_ndarrays_custom(
                 aggregated_parameters, context_client
             )
+            print(f"Number of aggregated parameters: {len(aggregated_ndarrays)}")
             if context_client:
                 server_response = {"contexte": server_context.serialize()}
-                for i, key in enumerate(central_model.state_dict().keys()):
+                for i, key in enumerate(trainable_keys):
                     try:
                         server_response[key] = aggregated_ndarrays[i].serialize()
                     except:
                         server_response[key] = aggregated_ndarrays[i]
                 fhe.write_query(server_path, server_response)
             else:
-                params_dict = zip(
-                    central_model.state_dict().keys(), aggregated_ndarrays
-                )
+                params_dict = zip(trainable_keys, aggregated_ndarrays)
                 state_dict = OrderedDict(
                     {k: torch.from_numpy(np.copy(v)) for k, v in params_dict}
                 )
-                central_model.load_state_dict(state_dict, strict=True)
+                central_model.load_state_dict(state_dict, strict=False)
                 if path_checkpoint:
                     torch.save(
                         {
