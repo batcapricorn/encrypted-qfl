@@ -5,7 +5,7 @@ show_help() {
     echo "Usage: $0 <model_type> <he_flag>"
     echo ""
     echo "Arguments:"
-    echo "  <model_type>   The model type to use. Must be one of: fednn, fedqnn. fedqcnn."
+    echo "  <model_type>   The model type to use, e.g., fednn, fedqnn or fedqcnn."
     echo "  <he_flag>      Enable or disable homomorphic encryption. Must be one of: true, false."
     echo ""
     echo "Description:"
@@ -22,13 +22,6 @@ if [[ "$1" == "--help" ]]; then
     show_help
     exit 0
 fi
-
-# Clean directory
-PRIVATE_KEY_PATH=$(grep 'private_key_path:' settings.yaml | cut -d':' -f2 | cut -d' ' -f2 | xargs)
-PUBLIC_KEY_PATH=$(grep 'public_key_path:' settings.yaml | cut -d':' -f2 | cut -d' ' -f2 | xargs)
-MODEL_CHECKPPOINT_PATH=$(grep 'model_checkpoint_path:' settings.yaml | cut -d':' -f2 | cut -d' ' -f2 | xargs)
-ENCRYPTED_MODEL_CHECKPOINT_PATH=$(grep 'encrypted_model_checkpoint_path:' settings.yaml | cut -d':' -f2 | cut -d' ' -f2 | xargs)
-rm -f $PRIVATE_KEY_PATH $PUBLIC_KEY_PATH $MODEL_CHECKPPOINT_PATH $ENCRYPTED_MODEL_CHECKPOINT_PATH
 
 # Read the number of clients from settings.yaml
 NUM_CLIENTS=$(grep 'number_clients:' settings.yaml | cut -d':' -f2 | xargs)
