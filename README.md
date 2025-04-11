@@ -76,6 +76,8 @@ The primary configuration for training is found in `settings.yaml`.
 | `n_qubits` | `4` | Number of qubits for quantum layers (only applicable if simple QNN is used, see `fedqnn` option of benchmark script) |
 | `n_layers` | `6` | Number of layers in quantum circuit (only applicable if simple QNN is used, see `fedqnn` option of benchmark script) |
 
+>Path variables such as `private_key_path` and `public_key_path` are relative to the `export_results_path` directory.
+For each run, a unique subdirectory is created within `export_results_path` to store results and all necessary runtime files.
 
 ## References 📝
 - [QFed+FHE: Quantum Federated Learning with Secure Fully Homomorphic Encryption (FHE)](https://github.com/elucidator8918/QFL-MLNCP-NeurIPS/tree/main)

@@ -118,14 +118,15 @@ elif args.model == "resnet18":
     NET = SimpleResNet18(num_classes=len(CLASSES)).to(DEVICE)
 
 if args.he:
+    PRIVATE_KEY_PATH = os.path.join(EXPORT_RESULTS_PATH, config["private_key_path"])
     print("Run with homomorphic encryption")
-    if os.path.exists(config["private_key_path"]):
-        with open(config["private_key_path"], "rb") as f:
+    if os.path.exists(PRIVATE_KEY_PATH):
+        with open(PRIVATE_KEY_PATH, "rb") as f:
             query = pickle.load(f)
         CONTEXT_CLIENT = ts.context_from(query["contexte"])
     else:
         CONTEXT_CLIENT = fhe.context()
-        with open(config["private_key_path"], "wb") as f:
+        with open(PRIVATE_KEY_PATH, "wb") as f:
             encode = pickle.dumps(
                 {"contexte": CONTEXT_CLIENT.serialize(save_secret_key=True)}
             )
@@ -140,7 +141,7 @@ if os.path.exists(checkpoint_path):
     checkpoint = torch.load(checkpoint_path, map_location=DEVICE)["model_state_dict"]
     if args.he:
         print("to decrypt model")
-        server_query, server_context = fhe.read_query(config["private_key_path"])
+        server_query, server_context = fhe.read_query(PRIVATE_KEY_PATH)
         server_context = ts.context_from(server_context)
         for name in checkpoint:
             print(name)

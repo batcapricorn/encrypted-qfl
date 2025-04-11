@@ -60,13 +60,6 @@ args = parser.parse_args()
 with open("settings.yaml", "r", encoding="utf-8") as file:
     config = yaml.safe_load(file)
 
-if args.he:
-    if os.path.exists(config["public_key_path"]) is False:
-        combo_keys(
-            client_path=config["private_key_path"],
-            server_path=config["public_key_path"],
-        )
-
 # Initialize wandb
 run_group = args.wandb_run_group
 if run_group is None:
@@ -99,10 +92,19 @@ EXPORT_RESULTS_PATH = os.path.join(
 )
 os.makedirs(EXPORT_RESULTS_PATH, exist_ok=True)
 
+if args.he:
+    PRIVATE_KEY_PATH = os.path.join(EXPORT_RESULTS_PATH, config["private_key_path"])
+    PUBLIC_KEY_PATH = os.path.join(EXPORT_RESULTS_PATH, config["public_key_path"])
+    if os.path.exists(PUBLIC_KEY_PATH) is False:
+        combo_keys(
+            client_path=PRIVATE_KEY_PATH,
+            server_path=PUBLIC_KEY_PATH,
+        )
+
 SERVER_CONTEXT = None
 if args.he:
-    print("get public key : ", config["public_key_path"])
-    _, SERVER_CONTEXT = read_query(config["public_key_path"])
+    print("get public key : ", PUBLIC_KEY_PATH)
+    _, SERVER_CONTEXT = read_query(PUBLIC_KEY_PATH)
     SERVER_CONTEXT = ts.context_from(SERVER_CONTEXT)
 
 DEVICE = torch.device(choice_device(config["device"]))
