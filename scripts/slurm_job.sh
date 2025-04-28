@@ -22,6 +22,13 @@ source .venv/bin/activate
 #pip install flwr==1.5.0 tqdm numpy pennylane "ray>=2.3.0" matplotlib pillow scikit-learn seaborn pandas opacus pyyaml tenseal psrecord yq wandb
 #pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
+if [ ! -d "/tmp/data" ]; then
+        echo "Copying dataset to /tmp..."
+        cp -r ../data/ /tmp
+else
+        echo "Dataset already exists in /tmp, skipping copy."
+fi
+
 wandb login
 
 ./scripts/benchmark.sh $MODEL_TYPE $HE_FLAG
