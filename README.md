@@ -79,6 +79,12 @@ The primary configuration for training is found in `settings.yaml`.
 >Path variables such as `private_key_path` and `public_key_path` are relative to the `export_results_path` directory.
 For each run, a unique subdirectory is created within `export_results_path` to store results and all necessary runtime files.
 
+### Slurm Jobs
+When submitting a slurm job, be sure to
+- pass an `wandb` API key as environment variable
+- set up a virtual environment that the nodes can use during runtime
+
+
 ## References 📝
 - [QFed+FHE: Quantum Federated Learning with Secure Fully Homomorphic Encryption (FHE)](https://github.com/elucidator8918/QFL-MLNCP-NeurIPS/tree/main)
 - [Quantum convolutional neural networks](https://www.nature.com/articles/s41567-019-0648-8)
