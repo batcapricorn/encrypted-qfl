@@ -41,8 +41,8 @@ if [[ -z "$MODEL_TYPE" ]]; then
     show_help
     exit 1
 fi
-if [[ "$MODEL_TYPE" != "fednn" && "$MODEL_TYPE" != "fedqnn" && "$MODEL_TYPE" != "qcnn" && "$MODEL_TYPE" != "resnet18" ]]; then
-    echo "Error: Invalid model type. Please use 'fednn', 'fedqnn', 'qcnn' or 'resnet18'."
+if [[ "$MODEL_TYPE" != "fednn" && "$MODEL_TYPE" != "fedqnn" && "$MODEL_TYPE" != "qcnn" && "$MODEL_TYPE" != "resnet18" ]] && "$MODEL_TYPE" != "resnet18-qnn" ]] && "$MODEL_TYPE" != "resnet18-qcnn" ]]; then
+    echo "Error: Invalid model type. Please use 'fednn', 'fedqnn', 'qcnn', 'resnet18', 'resnet18-qnn' or 'resnet18-qcnn'."
     show_help
     exit 1
 fi

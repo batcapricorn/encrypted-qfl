@@ -34,6 +34,9 @@ The main entry point for this project is `./scripts/benchmark.sh`. This script s
   - `qcnn`: Runs a full **Quantum Convolutional Neural Network (QCNN)** as described in the [TensorFlow Quantum QCNN tutorial](https://www.tensorflow.org/quantum/tutorials/qcnn).
   - `resnet18`: Runs a ResNet18 model where only the last layer is tuned.
     Allows for selective encryption of layers.
+  - `resnet18-qnn`: Combines `fedqnn` with `resnet18`
+  - `resnet18-qcnn`: Combines `qcnn` with `resnet18`
+
 
 - **`--he`**: Enables **Fully Homomorphic Encryption (FHE)** using the **CKKS** scheme for parameter encryption.  
 
