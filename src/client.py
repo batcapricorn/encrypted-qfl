@@ -16,7 +16,14 @@ import torch
 import wandb
 
 from apps.client import FlowerClient, start_numpy_client
-from pytorch.model import SimpleNet, SimpleResNet18, simple_qnn_factory, qcnn_factory
+from pytorch.model import (
+    SimpleNet,
+    SimpleResNet18,
+    simple_qnn_factory,
+    qcnn_factory,
+    simple_resnet18_qnn_factory,
+    resnet18_qcnn_factory,
+)
 from security import fhe
 from utils import data_setup
 from utils.common import choice_device, classes_string
@@ -41,9 +48,9 @@ parser.add_argument(
 parser.add_argument(
     "--model",
     type=str,
-    choices=["fednn", "fedqnn", "qcnn", "resnet18"],
+    choices=["fednn", "fedqnn", "qcnn", "resnet18", "resnet18-qnn", "resnet18-qcnn"],
     default="fednn",
-    help="Specify the model type: 'fednn', 'fedqnn', 'qcnn' or 'resnet18'.",
+    help="Specify the model type (e.g. 'fednn').",
 )
 parser.add_argument(
     "--wandb_run_group", type=str, help="Run group for `wandb`", default=None
@@ -116,6 +123,15 @@ elif args.model == "qcnn":
     NET = QNN(num_classes=len(CLASSES)).to(DEVICE)
 elif args.model == "resnet18":
     NET = SimpleResNet18(num_classes=len(CLASSES)).to(DEVICE)
+elif args.model == "resnet18-qnn":
+    SimpleResNet18QNN = simple_resnet18_qnn_factory(
+        config["n_qubits"], config["n_layers"]
+    )
+    NET = SimpleResNet18QNN(num_classes=len(CLASSES)).to(DEVICE)
+elif args.model == "resnet18-qcnn":
+    ResNet18QCNN = resnet18_qcnn_factory()
+    NET = ResNet18QCNN(num_classes=len(CLASSES)).to(DEVICE)
+
 
 if args.he:
     PRIVATE_KEY_PATH = os.path.join(EXPORT_RESULTS_PATH, config["private_key_path"])

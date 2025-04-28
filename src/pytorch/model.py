@@ -121,6 +121,61 @@ def simple_qnn_factory(n_qubits, n_layers):
     return SimpleQNN
 
 
+def simple_resnet18_qnn_factory(n_qubits, n_layers):
+    """Function that creates PyTorch module class
+    for simple QNN combined with resnet18.
+
+    :param n_qubits: Number of qubits
+    :type n_qubits: int
+    :param n_layers: Number of layers
+    :type n_layers: int
+    :return: PyTorch Module class
+    :rtype: nn.Module
+    """
+    weight_shapes = {"weights": (n_layers, n_qubits)}
+    dev = qml.device("default.qubit", wires=n_qubits)
+
+    @qml.qnode(dev, interface="torch")
+    def quantum_net(inputs, weights):
+        qml.AngleEmbedding(inputs, wires=range(n_qubits))
+        qml.BasicEntanglerLayers(weights, wires=range(n_qubits))
+        return [qml.expval(qml.PauliZ(i)) for i in range(n_qubits)]
+
+    class SimpleResNet18QNN(nn.Module):
+        """PyTorch Model Class using ResNet18 for feature extraction.
+
+        :param num_classes: An integer indicating the number of classes in the dataset.
+        :type num_classes: int
+        """
+
+        def __init__(self, num_classes=10) -> None:
+            super().__init__()
+
+            self.features = models.resnet18(pretrained=True)
+
+            for param in self.features.parameters():
+                param.requires_grad = False
+
+            num_features = self.features.fc.in_features
+            self.features.fc = nn.Sequential(nn.Linear(num_features, n_qubits))
+            self.features.fc = self.features.fc.requires_grad_(True)
+
+            self.classifier = nn.Sequential(
+                qml.qnn.TorchLayer(quantum_net, weight_shapes=weight_shapes),
+                nn.Linear(n_qubits, num_classes),
+            )
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            """
+            Forward pass of the neural network
+            """
+            x = self.features(x)
+            x = self.classifier(x)
+            return x
+
+    return SimpleResNet18QNN
+
+
 def qcnn_factory():
     """Returns a QCNN class that reduces 8 input qubits to 4
 
@@ -159,3 +214,52 @@ def qcnn_factory():
             )
 
     return QCNN
+
+
+def resnet18_qcnn_factory():
+    """Returns a QCNN class that reduces 8 input qubits to 4.
+    Images are embedded using Resnet18.
+
+    :return: PyTorch Model Class
+    :rtype: nn.Module
+    """
+    # Define quantum device with 16 qubits
+    n_qubits = 8
+    weight_shapes = {"weights": (21)}
+    dev = qml.device("default.qubit", wires=n_qubits)
+
+    qcnn_circuit = circuits.get_qcnn_circuit(dev, n_qubits)
+
+    class ResNet18QCNN(nn.Module):
+        """PyTorch Model Class using ResNet18 for feature extraction.
+
+        :param num_classes: An integer indicating the number of classes in the dataset.
+        :type num_classes: int
+        """
+
+        def __init__(self, num_classes=10) -> None:
+            super().__init__()
+
+            self.features = models.resnet18(pretrained=True)
+
+            for param in self.features.parameters():
+                param.requires_grad = False
+
+            num_features = self.features.fc.in_features
+            self.features.fc = nn.Sequential(nn.Linear(num_features, n_qubits))
+            self.features.fc = self.features.fc.requires_grad_(True)
+
+            self.classifier = nn.Sequential(
+                qml.qnn.TorchLayer(qcnn_circuit, weight_shapes=weight_shapes),
+                nn.Linear(n_qubits, num_classes),
+            )
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            """
+            Forward pass of the neural network
+            """
+            x = self.features(x)
+            x = self.classifier(x)
+            return x
+
+    return ResNet18QCNN
