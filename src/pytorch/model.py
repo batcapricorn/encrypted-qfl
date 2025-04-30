@@ -251,7 +251,7 @@ def resnet18_qcnn_factory():
 
             self.classifier = nn.Sequential(
                 qml.qnn.TorchLayer(qcnn_circuit, weight_shapes=weight_shapes),
-                nn.Linear(n_qubits, num_classes),
+                nn.Linear(4, num_classes),
             )
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
