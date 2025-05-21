@@ -6,7 +6,7 @@ show_help() {
     echo ""
     echo "Arguments:"
     echo "  <model_type>   The model type to use, e.g., fednn, fedqnn or fedqcnn."
-    echo "  <he_flag>      Enable or disable homomorphic encryption. Must be one of: true, false."
+    echo "  <he_flag>      Enable or disable homomorphic encryption."
     echo ""
     echo "Description:"
     echo "  This script launches a Flower server and multiple clients for federated learning."
