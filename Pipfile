@@ -18,13 +18,14 @@ pyyaml = "*"
 tenseal = "*"
 kaggle = "*"
 jupyter = "*"
-black = "*"
 torch = "*"
 torchvision = "*"
 torchaudio = "*"
 psrecord = "*"
 wandb = "*"
 pylint = "*"
+rich = "*"
+black = {extras = ["jupyter"], version = "*"}
 
 [dev-packages]
 
