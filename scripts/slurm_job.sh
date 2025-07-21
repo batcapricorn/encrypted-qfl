@@ -31,4 +31,4 @@ fi
 
 wandb login
 
-./scripts/benchmark.sh $MODEL_TYPE $HE_FLAG
+./scripts/experiment.sh $MODEL_TYPE $HE_FLAG

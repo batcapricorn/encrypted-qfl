@@ -27,4 +27,4 @@ else
         echo "Dataset already exists in /dev/shm/, skipping copy."
 fi
 
-./scripts/benchmark.sh $MODEL_TYPE $HE_FLAG
+./scripts/experiment.sh $MODEL_TYPE $HE_FLAG

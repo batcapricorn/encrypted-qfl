@@ -20,13 +20,13 @@
     ```
 4. Run training examples using the scripts provided in `srcipts/` and a tiny dataset placed in `data-tiny/`:
     ```bash
-    pipenv run ./scripts/benchmark.sh fednn --he
+    pipenv run ./scripts/experiment.sh fednn --he
     ```
 
 ## Cookbook 🍳
 
-### **`benchmark.sh`**  
-The main entry point for this project is `./scripts/benchmark.sh`. This script supports two key options:  
+### **`experiment.sh`**  
+The main entry point for this project is `./scripts/experiment.sh`. This script supports two key options:  
 
 - **`--model`**: Specifies the model type. Options include:  
   - `fednn`: Runs a standard convolutional neural network (CNN).  
@@ -41,8 +41,8 @@ The main entry point for this project is `./scripts/benchmark.sh`. This script s
 - **`--he`**: Enables **Fully Homomorphic Encryption (FHE)** using the **CKKS** scheme for parameter encryption.  
 
 #### **Example Usage:**  
-- Run a simple **neural network with FHE**: `./scripts/benchmark.sh fednn --he`  
-- Run a **Quantum Convolutional Neural Network (QCNN) without FHE**: `./scripts/benchmark.sh qcnn`
+- Run a simple **neural network with FHE**: `./scripts/experiment.sh fednn --he`  
+- Run a **Quantum Convolutional Neural Network (QCNN) without FHE**: `./scripts/experiment.sh qcnn`
 
 ---
 
@@ -76,8 +76,8 @@ The primary configuration for training is found in `settings.yaml`.
 | `model_checkpoint_path` | `"model_checkpoint.pt"` | Path to unencrypted model checkpoint |
 | `encrypted_model_checkpoint_path`| `"encrypted_model_checkpoint.pkl"` | Path to encrypted model checkpoint |
 | `layers_to_encrypt`| `["classifier.2.weight"]` | List of layers that should be encrypted. If list contains `all`, every layer will be encrypted.
-| `n_qubits` | `4` | Number of qubits for quantum layers (only applicable if simple QNN is used, see `fedqnn` option of benchmark script) |
-| `n_layers` | `6` | Number of layers in quantum circuit (only applicable if simple QNN is used, see `fedqnn` option of benchmark script) |
+| `n_qubits` | `4` | Number of qubits for quantum layers (only applicable if simple QNN is used, see `fedqnn` option of experiment script) |
+| `n_layers` | `6` | Number of layers in quantum circuit (only applicable if simple QNN is used, see `fedqnn` option of experiment script) |
 
 >Path variables such as `private_key_path` and `public_key_path` are relative to the `export_results_path` directory.
 For each run, a unique subdirectory is created within `export_results_path` to store results and all necessary runtime files.
