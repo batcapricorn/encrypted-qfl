@@ -21,7 +21,6 @@ from sklearn.metrics import (
 )
 
 import torch
-import torch.nn.functional
 import wandb
 
 from security.fhe import crypte, deserialized_layer
@@ -337,8 +336,8 @@ def set_parameters(net, parameters: list[np.ndarray], context_client=None):
 def eval_classification(y_test, y_pred):
     """Generate different kind of evaluation metrics for (multi) classification tasks"""
     rec = recall_score(
-        y_test, y_pred, average="micro"
+        y_test, y_pred, average="macro"
     )  # average argument required for multi-class
-    prec = precision_score(y_test, y_pred, average="micro")
-    f1 = f1_score(y_test, y_pred, average="micro")
+    prec = precision_score(y_test, y_pred, average="macro")
+    f1 = f1_score(y_test, y_pred, average="macro")
     return rec, prec, f1
