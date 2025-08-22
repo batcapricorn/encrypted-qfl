@@ -1,7 +1,6 @@
 #!/bin/bash
-#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=48
-#SBATCH --partition=barnard
+#SBATCH --partition=clara
 #SBATCH --time=2-00:00:00
 #SBATCH --job-name=fl_simulation      # Job name
 #SBATCH --mem=200G                     # Total memory
@@ -16,19 +15,16 @@ if [[ "$1" == "--he" ]]; then
     HE_FLAG="--he"
 fi
 
-module load release/24.10
 module load Anaconda3/2024.02-1
-source .venv/bin/activate
-#pip install flwr==1.5.0 tqdm numpy pennylane "ray>=2.3.0" matplotlib pillow scikit-learn seaborn pandas opacus pyyaml tenseal psrecord yq wandb
-#pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+source activate base
+pip install flwr==1.5.0 tqdm numpy pennylane "ray>=2.3.0" matplotlib pillow scikit-learn seaborn pandas opacus pyyaml tenseal psrecord yq wandb
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-if [ ! -d "/tmp/data" ]; then
-        echo "Copying dataset to /tmp..."
-        cp -r ../data/ /tmp
+if [ ! -d "/dev/shm/data" ]; then
+        echo "Copying dataset to /dev/shm/..."
+        cp -r ../data/ /dev/shm/
 else
-        echo "Dataset already exists in /tmp, skipping copy."
+        echo "Dataset already exists in /dev/shm/, skipping copy."
 fi
-
-wandb login
 
 ./scripts/experiment.sh $MODEL_TYPE $HE_FLAG
