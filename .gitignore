@@ -10,3 +10,5 @@ tmp.json
 settings.yaml
 *.err
 *.out
+archive/
+analysis/
