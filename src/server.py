@@ -53,9 +53,9 @@ parser.add_argument(
 parser.add_argument(
     "--model",
     type=str,
-    choices=["fednn", "fedqnn", "qcnn", "resnet18", "resnet18-qnn", "resnet18-qcnn"],
-    default="fednn",
-    help="Specify the model type (e.g. 'fednn')",
+    choices=["cnn", "cnn-qnn", "cnn-qcnn", "resnet18", "resnet18-qnn", "resnet18-qcnn"],
+    default="cnn",
+    help="Specify the model type (e.g. 'cnn')",
 )
 parser.add_argument(
     "--wandb_run_group", type=str, help="Run group for `wandb`", default=None
@@ -117,12 +117,12 @@ if args.he:
 DEVICE = torch.device(choice_device(config["device"]))
 CLASSES = classes_string(config["dataset"])
 CENTRAL = None
-if args.model == "fednn":
+if args.model == "cnn":
     CENTRAL = SimpleNet(num_classes=len(CLASSES)).to(DEVICE)
-elif args.model == "fedqnn":
+elif args.model == "cnn-qnn":
     SimpleQNN = simple_qnn_factory(config["n_qubits"], config["n_layers"])
     CENTRAL = SimpleQNN(num_classes=len(CLASSES)).to(DEVICE)
-elif args.model == "qcnn":
+elif args.model == "cnn-qcnn":
     QNN = qcnn_factory()
     CENTRAL = QNN(num_classes=len(CLASSES)).to(DEVICE)
 elif args.model == "resnet18":
