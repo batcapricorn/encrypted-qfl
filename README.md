@@ -7,7 +7,7 @@ Analyzing Overhead of Fully Homomorphic Encryption for Parameters in Quantum Fed
 The easiest way to run our project is by using [VS Code Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers). This allows you to run our [Demo-Notebook](demo.ipynb) inside a Docker container built with this [Dockerfile](Dockerfile).
 
 1. Make sure you have [Docker](https://www.docker.com/get-started/) installed.  
-2. Open this project within a VS Code Dev Container. If you don't want to use Docker, dependencies can also be installed using [pipenv](https://pipenv.pypa.io/en/latest/) with the command: `pipenv install`.
+2. Open this project within a VS Code Dev Container. If you don't want to use Docker, dependencies can also be installed using [pipenv](https://pipenv.pypa.io/en/latest/) with the command: `pipenv install`. In VS Code, you will also be asked to install Jupyter and Python extensions.
 3. Open [demo.ipynb](demo.ipynb), select the kernel from Python environments, and run the notebook.
 
 ## Cookbook 🍳

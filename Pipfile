@@ -39,13 +39,14 @@ tenseal = "*"
 kaggle = "*"
 jupyter = "*"
 psrecord = "*"
-wandb = "*"
 pylint = "*"
 rich = "*"
 black = {extras = ["jupyter"], version = "*"}
 torch = {version = "*", index = "downloadpytorch"}
 torchvision = {version = "*", index = "downloadpytorch"}
 torchaudio = {version = "*", index = "downloadpytorch"}
+wandb = "*"
+pydantic = "*"
 
 [dev-packages]
 
